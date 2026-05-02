@@ -84,14 +84,6 @@ The current training scripts use `torchvision.datasets.MNIST`.
 - By default, datasets are stored under the project-local `DATA/` directory.
 - You can override the dataset location with the `--data-root` argument.
 
-## Scope
-
-- Local-learning discrimination layer
-- Iterative activity optimizer
-- Organize-cycle neuron statistics and per-neuron learning-rate protection
-- Optional review-based readout training
-- Optional dataset-based initialization
-
 ## Folder Layout
 
 - `models/`: high-level model components
