@@ -1,0 +1,16 @@
+.DS_Store
+__pycache__/
+*.pyc
+*.pyo
+DATA/
+RESULT/
+data/
+outputs/
+analysis_outputs/
+*.pth
+*.pt
+*.csv
+*.png
+*.svg
+*.log
+.ipynb_checkpoints/
