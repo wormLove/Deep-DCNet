@@ -126,6 +126,24 @@ Discrimination-only run:
 python training/train_discrimination.py --device cuda
 ```
 
+### Common Options
+
+- `--device`: choose the execution device (`cpu`, `cuda`, or `mps`)
+- `--training-mode`: choose classifier training with or without review (`plain` or `review`)
+- `--init-mode`: choose random or dataset-based initialization (`random` or `dataset`)
+- `--batch-size`: set the mini-batch size
+- `--organize-interval-samples`: set how many samples are processed between organize updates
+- `--eval-interval-samples`: set how many samples are processed between evaluation passes
+- `--review-per-sample-max`: set the maximum replay budget per real sample in review mode
+- `--data-root`: override the default dataset directory
+
+For the full CLI configuration, see:
+
+```bash
+python training/train_classifier.py --help
+python training/train_discrimination.py --help
+```
+
 ## Notes
 
 - Training scripts now default to the local `DATA/` and `RESULT/` directories inside this project.
