@@ -12,14 +12,24 @@ class AnalysisEngine:
 
     def __init__(
         self,
-        base_dir: Path,
+        base_dir: Optional[Path] = None,
         run_name: str = "gpu_rebuild_discrimination",
+        run_dir: Optional[Path] = None,
+        append_timestamp: bool = True,
         image_hw=(28, 28),
         grid_rows: int = 25,
         grid_cols: int = 40,
     ):
-        timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-        self.run_dir = ensure_dir(Path(base_dir) / run_name / timestamp)
+        if run_dir is not None:
+            self.run_dir = ensure_dir(Path(run_dir))
+        else:
+            if base_dir is None:
+                raise ValueError("Either base_dir or run_dir must be provided.")
+            run_root = Path(base_dir) / run_name
+            if append_timestamp:
+                timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+                run_root = run_root / timestamp
+            self.run_dir = ensure_dir(run_root)
         self.weights_dir = ensure_dir(self.run_dir / "weights")
         self.hebb_dir = ensure_dir(self.run_dir / "potential_hebb")
         self.lr_dir = ensure_dir(self.run_dir / "lr_vec")

@@ -68,6 +68,18 @@ def build_train_log_path(result_root: Path, analysis) -> Path:
     return run_dir / "train_log.txt"
 
 
+def build_run_dir(result_root: Path, run_name: str | None = None, append_timestamp: bool = True) -> Path:
+    root = Path(result_root)
+    if run_name:
+        run_dir = root / run_name
+    else:
+        run_dir = root / "gpu_rebuild_classifier"
+    if append_timestamp:
+        run_dir = run_dir / datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    run_dir.mkdir(parents=True, exist_ok=True)
+    return run_dir
+
+
 def run_classifier_train(
     device: torch.device,
     data_root: Path,
@@ -92,6 +104,8 @@ def run_classifier_train(
     quiet_train: bool = True,
     save_eval_log: bool = True,
     save_train_log: bool = True,
+    run_name: str | None = None,
+    append_timestamp: bool = True,
 ) -> None:
     train_dataset = MNIST(root=str(data_root), train=True, transform=transforms.ToTensor(), download=True)
     test_dataset = MNIST(root=str(data_root), train=False, transform=transforms.ToTensor(), download=True)
@@ -155,9 +169,10 @@ def run_classifier_train(
 
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.readout_head.parameters(), lr=1e-3)
-    analysis = AnalysisEngine(base_dir=result_root, run_name="gpu_rebuild_classifier") if enable_analysis else None
-    eval_log_path = build_eval_log_path(result_root, analysis) if save_eval_log else None
-    train_log_path = build_train_log_path(result_root, analysis) if save_train_log else None
+    run_dir = build_run_dir(result_root, run_name=run_name, append_timestamp=append_timestamp)
+    analysis = AnalysisEngine(run_dir=run_dir) if enable_analysis else None
+    eval_log_path = run_dir / "eval_log.txt" if save_eval_log else None
+    train_log_path = run_dir / "train_log.txt" if save_train_log else None
 
     def eval_logger(tag: str, step: int, samples: int, acc: float) -> None:
         if eval_log_path is None:
@@ -172,6 +187,7 @@ def run_classifier_train(
             f.write(message + "\n")
     setup_lines = [
         f"[device] {device}",
+        f"[run_dir] {run_dir}",
         f"[train_subset] {num_train_samples}",
         f"[test_subset] {num_test_samples}",
         f"[batch_size] {batch_size}",
@@ -194,7 +210,7 @@ def run_classifier_train(
     if analysis is not None:
         setup_lines.append(f"[result_dir] {analysis.run_dir}")
     else:
-        setup_lines.append("[result_dir] disabled (analysis off)")
+        setup_lines.append(f"[result_dir] {run_dir} (analysis off)")
     if eval_log_path is not None:
         setup_lines.append(f"[eval_log] {eval_log_path}")
     if train_log_path is not None:
@@ -235,6 +251,12 @@ def parse_args():
     parser.add_argument("--device", type=str, default="auto", choices=["auto", "cpu", "cuda", "mps"])
     parser.add_argument("--data-root", type=str, default=str(Path(BASE_DIR) / "DATA"))
     parser.add_argument("--result-root", type=str, default=str(Path(BASE_DIR) / "RESULT"))
+    parser.add_argument("--run-name", type=str, default=None, help="Leaf directory name for this run under result-root.")
+    parser.add_argument(
+        "--no-timestamp",
+        action="store_true",
+        help="Do not append a timestamp subdirectory under the chosen run directory.",
+    )
     parser.add_argument("--num-train-samples", type=int, default=1000)
     parser.add_argument("--num-test-samples", type=int, default=1000)
     parser.add_argument("--batch-size", type=int, default=4)
@@ -285,4 +307,6 @@ if __name__ == "__main__":
         quiet_train=not args.show_train_log,
         save_eval_log=not args.disable_eval_log,
         save_train_log=not args.disable_train_log,
+        run_name=args.run_name,
+        append_timestamp=not args.no_timestamp,
     )
