@@ -70,12 +70,13 @@ def build_train_log_path(result_root: Path, analysis) -> Path:
 
 def build_run_dir(result_root: Path, run_name: str | None = None, append_timestamp: bool = True) -> Path:
     root = Path(result_root)
-    if run_name:
-        run_dir = root / run_name
-    else:
-        run_dir = root / "gpu_rebuild_classifier"
+    base_name = run_name if run_name else "gpu_rebuild_classifier"
     if append_timestamp:
-        run_dir = run_dir / datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        dir_name = f"{base_name}_{timestamp}"
+    else:
+        dir_name = base_name
+    run_dir = root / dir_name
     run_dir.mkdir(parents=True, exist_ok=True)
     return run_dir
 
