@@ -39,6 +39,8 @@ class BiologicalClassifier(nn.Module):
         discrimination_config: Optional[Dict] = None,
         integration_dim: Optional[int] = None,
         integration_activation: str = "relu",
+        head_cls=ReadoutHead,
+        head_kwargs: Optional[Dict] = None,
     ):
         super().__init__()
         self.input_dim = int(input_dim)
@@ -57,8 +59,15 @@ class BiologicalClassifier(nn.Module):
             param.requires_grad = False
 
         # --- Integration layer (optional) ---
-        # When present: cat([layer0, layer1]) → IntegrationLayer → ReadoutHead
-        # When absent:  layer1 → ReadoutHead  (original behaviour)
+        # When present: cat([layer0, layer1]) → IntegrationLayer → head
+        # When absent:  layer1 → head  (original behaviour)
+        #
+        # head_cls/head_kwargs let the readout be swapped for a different
+        # classifier head - e.g. models.classifier_heads.TraditionalMLPHead -
+        # for comparison experiments (Prof. Yu's point #5). Any head_cls must
+        # accept (in_dim, out_dim, **kwargs) and implement forward(x) ->
+        # logits, matching ReadoutHead's interface. Defaults to ReadoutHead,
+        # so existing behavior is unchanged.
         self.output_dim = output_dim
         if output_dim is not None:
             if integration_dim is not None:
@@ -67,10 +76,10 @@ class BiologicalClassifier(nn.Module):
                     out_dim=integration_dim,
                     activation=integration_activation,
                 )
-                self.readout_head = ReadoutHead(integration_dim, output_dim)
+                self.readout_head = head_cls(integration_dim, output_dim, **(head_kwargs or {}))
             else:
                 self.integration_layer = None
-                self.readout_head = ReadoutHead(hidden_dim, output_dim)
+                self.readout_head = head_cls(hidden_dim, output_dim, **(head_kwargs or {}))
         else:
             self.integration_layer = None
             self.readout_head = None
