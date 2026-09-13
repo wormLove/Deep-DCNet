@@ -1,4 +1,6 @@
 .DS_Store
+hpc/logs/*.out
+hpc/logs/*.err
 __pycache__/
 *.pyc
 *.pyo
@@ -14,3 +16,6 @@ analysis_outputs/
 *.svg
 *.log
 .ipynb_checkpoints/
+My_Notes_Aishani
+Claude outputs/
+gpu_rebuild_classifier/

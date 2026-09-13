@@ -1,6 +1,7 @@
 import argparse
 from datetime import datetime
 from pathlib import Path
+from typing import Optional
 import sys
 
 import torch
@@ -92,6 +93,8 @@ def run_classifier_train(
     quiet_train: bool = True,
     save_eval_log: bool = True,
     save_train_log: bool = True,
+    integration_dim: Optional[int] = None,
+    integration_activation: str = "relu",
 ) -> None:
     train_dataset = MNIST(root=str(data_root), train=True, transform=transforms.ToTensor(), download=True)
     test_dataset = MNIST(root=str(data_root), train=False, transform=transforms.ToTensor(), download=True)
@@ -118,6 +121,8 @@ def run_classifier_train(
         output_dim=10,
         data_initializer=data_initializer,
         transform=flatten_to_vector,
+        integration_dim=integration_dim,
+        integration_activation=integration_activation,
         discrimination_config={
             "non_negative": True,
             "beta": 199 / 200,
@@ -154,7 +159,12 @@ def run_classifier_train(
         model.enable_review(enabled=False)
 
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.Adam(model.readout_head.parameters(), lr=1e-3)
+    # Collect all backprop-trained parameters: integration layer (when present) + readout head
+    trainable_params = list(model.readout_head.parameters())
+    if model.integration_layer is not None:
+        trainable_params += list(model.integration_layer.parameters())
+    optimizer = optim.Adam(trainable_params, lr=1e-3)
+
     analysis = AnalysisEngine(base_dir=result_root, run_name="gpu_rebuild_classifier") if enable_analysis else None
     eval_log_path = build_eval_log_path(result_root, analysis) if save_eval_log else None
     train_log_path = build_train_log_path(result_root, analysis) if save_train_log else None
@@ -170,6 +180,7 @@ def run_classifier_train(
             return
         with open(train_log_path, "a", encoding="utf-8") as f:
             f.write(message + "\n")
+
     setup_lines = [
         f"[device] {device}",
         f"[train_subset] {num_train_samples}",
@@ -180,6 +191,11 @@ def run_classifier_train(
         f"[training_mode] {training_mode}",
         f"[init_mode] {init_mode}",
     ]
+    if integration_dim is not None:
+        setup_lines.append(f"[integration_dim] {integration_dim}")
+        setup_lines.append(f"[integration_activation] {integration_activation}")
+    else:
+        setup_lines.append("[integration_layer] disabled")
     if init_mode == "dataset":
         setup_lines.append(f"[init_ratio] {init_ratio}")
         setup_lines.append(f"[init_dataset_scope] {init_dataset_scope}")
@@ -255,6 +271,20 @@ def parse_args():
     parser.add_argument("--show-train-log", action="store_true")
     parser.add_argument("--disable-eval-log", action="store_true")
     parser.add_argument("--disable-train-log", action="store_true")
+    parser.add_argument(
+        "--integration-dim",
+        type=int,
+        default=None,
+        help="Hidden size of the dense integration layer (cat([L0,L1]) → integration_dim → readout). "
+             "Omit to disable the integration layer and use the original L1 → readout path.",
+    )
+    parser.add_argument(
+        "--integration-activation",
+        type=str,
+        default="relu",
+        choices=["relu", "tanh", "gelu"],
+        help="Activation function for the integration layer (default: relu).",
+    )
     return parser.parse_args()
 
 
@@ -285,4 +315,6 @@ if __name__ == "__main__":
         quiet_train=not args.show_train_log,
         save_eval_log=not args.disable_eval_log,
         save_train_log=not args.disable_train_log,
+        integration_dim=args.integration_dim,
+        integration_activation=args.integration_activation,
     )

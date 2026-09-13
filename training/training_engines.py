@@ -186,7 +186,10 @@ def train_classifier_with_review(
         optimizer.zero_grad(set_to_none=True)
         out = model(x, return_intermediate=True)
         logits = out["logits"]
-        act = out["act"].detach()
+        # When an integration layer is present, cache cat([layer0, layer1]) so
+        # that review replay can pass through the full integration → readout path.
+        # Without an integration layer this falls back to the sparse Layer 1 act.
+        act = out.get("integration_input", out["act"]).detach()
         loss = criterion(logits, y)
         loss.backward()
         optimizer.step()
