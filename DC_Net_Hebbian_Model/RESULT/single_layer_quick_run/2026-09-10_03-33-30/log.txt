@@ -1,0 +1,61 @@
+[Step 0] TestAcc: 10.28%
+[Step 0] EvalTime: 62.59s
+[NEW BEST] acc=10.28% at step=0
+[Step 200] BlockTime: 1.49s
+[Step 200] LastLoss: 2.356706
+[Step 200] WeightDrift: -1.0
+[Step 200] ReviewP: 0.000, CacheSize: 0
+[Step 400] BlockTime: 1.57s
+[Step 400] LastLoss: 2.108013
+[Step 400] WeightDrift: 0.46060362458229065
+[Step 400] ReviewP: 0.000, CacheSize: 0
+[Step 600] BlockTime: 1.54s
+[Step 600] LastLoss: 2.026989
+[Step 600] WeightDrift: 0.2848219871520996
+[Step 600] ReviewP: 0.000, CacheSize: 0
+[Step 800] BlockTime: 1.40s
+[Step 800] LastLoss: 1.275915
+[Step 800] WeightDrift: 0.33864569664001465
+[Step 800] ReviewP: 0.000, CacheSize: 0
+[Step 1000] BlockTime: 1.55s
+[Step 1000] LastLoss: 1.166335
+[Step 1000] WeightDrift: 0.2559640109539032
+[Step 1000] ReviewP: 0.000, CacheSize: 0
+[Step 1200] BlockTime: 1.37s
+[Step 1200] LastLoss: 1.378908
+[Step 1200] WeightDrift: 0.2689480185508728
+[Step 1200] ReviewP: 0.000, CacheSize: 0
+[Step 1400] BlockTime: 1.47s
+[Step 1400] LastLoss: 2.255785
+[Step 1400] WeightDrift: 0.22942642867565155
+[Step 1400] ReviewP: 0.200, CacheSize: 200
+[Step 1600] BlockTime: 1.90s
+[Step 1600] LastLoss: 0.420053
+[Step 1600] WeightDrift: 0.2245580554008484
+[Step 1600] ReviewP: 0.400, CacheSize: 400
+[Step 1800] BlockTime: 2.16s
+[Step 1800] LastLoss: 0.205550
+[Step 1800] WeightDrift: 0.1996082216501236
+[Step 1800] ReviewP: 0.600, CacheSize: 600
+[Step 2000] BlockTime: 2.75s
+[Step 2000] LastLoss: 2.050343
+[Step 2000] WeightDrift: 0.18847645819187164
+[Step 2000] ReviewP: 0.800, CacheSize: 800
+[Step 2200] BlockTime: 3.27s
+[Step 2200] LastLoss: 0.034495
+[Step 2200] WeightDrift: 0.17210666835308075
+[Step 2200] ReviewP: 0.800, CacheSize: 1000
+[Step 2400] BlockTime: 3.43s
+[Step 2400] LastLoss: 1.773499
+[Step 2400] WeightDrift: 0.15913639962673187
+[Step 2400] ReviewP: 0.800, CacheSize: 1200
+[Step 2600] BlockTime: 3.49s
+[Step 2600] LastLoss: 0.013169
+[Step 2600] WeightDrift: 0.14824074506759644
+[Step 2600] ReviewP: 0.800, CacheSize: 1400
+[Step 2800] BlockTime: 3.72s
+[Step 2800] LastLoss: 3.059684
+[Step 2800] WeightDrift: 0.14106006920337677
+[Step 2800] ReviewP: 0.800, CacheSize: 1600
+[FINAL] step=3000, acc=60.36%
+[BEST] acc=10.28% at step=0; path=/root/project/dcnet_real/RESULT/single_layer_quick_run/2026-09-10_03-33-30/best_step_0.pth

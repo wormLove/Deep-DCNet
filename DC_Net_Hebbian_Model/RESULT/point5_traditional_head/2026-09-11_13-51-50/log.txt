@@ -1,0 +1,39 @@
+Loading frozen discrimination layer checkpoint: single_layer_mnist_h1000_full
+  hidden_dim=1000, frozen (all params requires_grad=False)
+Precomputing train-set activations (forward-only, no organize)...
+    ...10000/60000 (141.7s elapsed)
+    ...20000/60000 (297.9s elapsed)
+    ...30000/60000 (471.1s elapsed)
+    ...40000/60000 (657.0s elapsed)
+    ...50000/60000 (841.0s elapsed)
+    ...60000/60000 (1025.2s elapsed)
+  done in 1025.4s -> (60000, 1000)
+Precomputing test-set activations...
+    ...10000/10000 (130.1s elapsed)
+  done in 130.2s -> (10000, 1000)
+
+Training TraditionalMLPHead (hidden_dims=(256,), dropout=0.2, epochs=15, batch_size=128, lr=0.001)
+[Epoch 0] (untrained head) TestAcc: 10.30%
+[Epoch 1] TestAcc: 94.73% [NEW BEST]
+[Epoch 2] TestAcc: 95.36% [NEW BEST]
+[Epoch 3] TestAcc: 95.29%
+[Epoch 4] TestAcc: 95.64% [NEW BEST]
+[Epoch 5] TestAcc: 96.02% [NEW BEST]
+[Epoch 6] TestAcc: 96.08% [NEW BEST]
+[Epoch 7] TestAcc: 96.19% [NEW BEST]
+[Epoch 8] TestAcc: 96.16%
+[Epoch 9] TestAcc: 96.32% [NEW BEST]
+[Epoch 10] TestAcc: 96.27%
+[Epoch 11] TestAcc: 96.34% [NEW BEST]
+[Epoch 12] TestAcc: 96.35% [NEW BEST]
+[Epoch 13] TestAcc: 96.37% [NEW BEST]
+[Epoch 14] TestAcc: 96.32%
+[Epoch 15] TestAcc: 96.43% [NEW BEST]
+
+Training done in 7.3s
+[FINAL] epoch=15, acc=96.43%
+[BEST]  acc=96.43%
+
+Comparison, same frozen discrimination-layer features (single_layer_mnist_h1000_full):
+  ReadoutHead      (single linear layer):        94.88% final / 95.15% best
+  TraditionalMLPHead (Linear->ReLU->Dropout->Linear): 96.43% final / 96.43% best

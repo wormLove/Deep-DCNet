@@ -1,0 +1,1276 @@
+[Step 0] TestAcc: 9.49%
+[Step 0] EvalTime: 123.32s
+[NEW BEST] acc=9.49% at step=0
+[Step 200] BlockTime: 3.83s
+[Step 200] LastLoss: 2.368252
+[Step 200] WeightDrift: -1.0
+[Step 200] ReviewP: 0.000, CacheSize: 0
+[Step 400] BlockTime: 3.93s
+[Step 400] LastLoss: 2.464203
+[Step 400] WeightDrift: 1.2827298641204834
+[Step 400] ReviewP: 0.000, CacheSize: 0
+[Step 600] BlockTime: 3.83s
+[Step 600] LastLoss: 0.900173
+[Step 600] WeightDrift: 0.48094573616981506
+[Step 600] ReviewP: 0.000, CacheSize: 0
+[Step 800] BlockTime: 3.92s
+[Step 800] LastLoss: 0.704438
+[Step 800] WeightDrift: 1.055166244506836
+[Step 800] ReviewP: 0.000, CacheSize: 0
+[Step 1000] BlockTime: 3.76s
+[Step 1000] LastLoss: 1.867061
+[Step 1000] WeightDrift: 0.6331425309181213
+[Step 1000] ReviewP: 0.000, CacheSize: 0
+[Step 1200] BlockTime: 4.04s
+[Step 1200] LastLoss: 1.484138
+[Step 1200] WeightDrift: 0.9070917963981628
+[Step 1200] ReviewP: 0.000, CacheSize: 0
+[Step 1400] BlockTime: 3.88s
+[Step 1400] LastLoss: 0.394965
+[Step 1400] WeightDrift: 0.670892596244812
+[Step 1400] ReviewP: 0.000, CacheSize: 0
+[Step 1600] BlockTime: 3.94s
+[Step 1600] LastLoss: 0.936656
+[Step 1600] WeightDrift: 0.7788045406341553
+[Step 1600] ReviewP: 0.000, CacheSize: 0
+[Step 1800] BlockTime: 3.92s
+[Step 1800] LastLoss: 0.616265
+[Step 1800] WeightDrift: 0.641395628452301
+[Step 1800] ReviewP: 0.000, CacheSize: 0
+[Step 2000] BlockTime: 3.94s
+[Step 2000] LastLoss: 1.559488
+[Step 2000] WeightDrift: 0.6617799997329712
+[Step 2000] ReviewP: 0.000, CacheSize: 0
+[Step 2000] TestAcc: 82.66%
+[Step 2000] EvalTime: 142.28s
+[NEW BEST] acc=82.66% at step=2000
+[Step 2200] BlockTime: 3.98s
+[Step 2200] LastLoss: 2.867537
+[Step 2200] WeightDrift: 0.5718069076538086
+[Step 2200] ReviewP: 0.000, CacheSize: 0
+[Step 2400] BlockTime: 4.17s
+[Step 2400] LastLoss: 2.140895
+[Step 2400] WeightDrift: 0.5542232990264893
+[Step 2400] ReviewP: 0.000, CacheSize: 0
+[Step 2600] BlockTime: 3.92s
+[Step 2600] LastLoss: 0.638491
+[Step 2600] WeightDrift: 0.4829677641391754
+[Step 2600] ReviewP: 0.000, CacheSize: 0
+[Step 2800] BlockTime: 3.77s
+[Step 2800] LastLoss: 1.375362
+[Step 2800] WeightDrift: 0.4463792145252228
+[Step 2800] ReviewP: 0.000, CacheSize: 0
+[Step 3000] BlockTime: 3.84s
+[Step 3000] LastLoss: 2.412683
+[Step 3000] WeightDrift: 0.3766535818576813
+[Step 3000] ReviewP: 0.000, CacheSize: 0
+[Step 3200] BlockTime: 3.83s
+[Step 3200] LastLoss: 0.245542
+[Step 3200] WeightDrift: 0.31912463903427124
+[Step 3200] ReviewP: 0.000, CacheSize: 0
+[Step 3400] BlockTime: 3.92s
+[Step 3400] LastLoss: 1.342212
+[Step 3400] WeightDrift: 0.2616921365261078
+[Step 3400] ReviewP: 0.000, CacheSize: 0
+[Step 3600] BlockTime: 3.62s
+[Step 3600] LastLoss: 0.322229
+[Step 3600] WeightDrift: 0.21433527767658234
+[Step 3600] ReviewP: 0.000, CacheSize: 0
+[Step 3800] BlockTime: 3.53s
+[Step 3800] LastLoss: 0.866434
+[Step 3800] WeightDrift: 0.17383037507534027
+[Step 3800] ReviewP: 0.200, CacheSize: 200
+[Step 4000] BlockTime: 3.96s
+[Step 4000] LastLoss: 0.032993
+[Step 4000] WeightDrift: 0.1397896558046341
+[Step 4000] ReviewP: 0.400, CacheSize: 400
+[Step 4000] TestAcc: 85.27%
+[Step 4000] EvalTime: 134.53s
+[NEW BEST] acc=85.27% at step=4000
+[Step 4200] BlockTime: 4.17s
+[Step 4200] LastLoss: 0.161354
+[Step 4200] WeightDrift: 0.11502031981945038
+[Step 4200] ReviewP: 0.600, CacheSize: 600
+[Step 4400] BlockTime: 4.38s
+[Step 4400] LastLoss: 1.891073
+[Step 4400] WeightDrift: 0.09676992893218994
+[Step 4400] ReviewP: 0.800, CacheSize: 800
+[Step 4600] BlockTime: 4.20s
+[Step 4600] LastLoss: 0.873820
+[Step 4600] WeightDrift: 0.08245477825403214
+[Step 4600] ReviewP: 0.800, CacheSize: 1000
+[Step 4800] BlockTime: 4.35s
+[Step 4800] LastLoss: 1.453734
+[Step 4800] WeightDrift: 0.07265173643827438
+[Step 4800] ReviewP: 0.800, CacheSize: 1200
+[Step 5000] BlockTime: 4.16s
+[Step 5000] LastLoss: 0.487138
+[Step 5000] WeightDrift: 0.06434378027915955
+[Step 5000] ReviewP: 0.800, CacheSize: 1400
+[Step 5200] BlockTime: 4.21s
+[Step 5200] LastLoss: 0.306915
+[Step 5200] WeightDrift: 0.0565323680639267
+[Step 5200] ReviewP: 0.800, CacheSize: 1600
+[Step 5400] BlockTime: 4.25s
+[Step 5400] LastLoss: 0.161610
+[Step 5400] WeightDrift: 0.04987023398280144
+[Step 5400] ReviewP: 0.800, CacheSize: 1800
+[Step 5600] BlockTime: 4.46s
+[Step 5600] LastLoss: 0.046021
+[Step 5600] WeightDrift: 0.04514465481042862
+[Step 5600] ReviewP: 0.800, CacheSize: 2000
+[Step 5800] BlockTime: 4.09s
+[Step 5800] LastLoss: 0.095365
+[Step 5800] WeightDrift: 0.04117574915289879
+[Step 5800] ReviewP: 0.800, CacheSize: 2200
+[Step 6000] BlockTime: 4.26s
+[Step 6000] LastLoss: 0.000081
+[Step 6000] WeightDrift: 0.03736476972699165
+[Step 6000] ReviewP: 0.800, CacheSize: 2400
+[Step 6000] TestAcc: 90.13%
+[Step 6000] EvalTime: 144.04s
+[NEW BEST] acc=90.13% at step=6000
+[Step 6200] BlockTime: 4.62s
+[Step 6200] LastLoss: 0.447818
+[Step 6200] WeightDrift: 0.03350363299250603
+[Step 6200] ReviewP: 0.800, CacheSize: 2600
+[Step 6400] BlockTime: 4.35s
+[Step 6400] LastLoss: 0.000588
+[Step 6400] WeightDrift: 0.030399946495890617
+[Step 6400] ReviewP: 0.800, CacheSize: 2800
+[Step 6600] BlockTime: 4.23s
+[Step 6600] LastLoss: 3.909143
+[Step 6600] WeightDrift: 0.027670148760080338
+[Step 6600] ReviewP: 0.800, CacheSize: 3000
+[Step 6800] BlockTime: 4.31s
+[Step 6800] LastLoss: 0.600740
+[Step 6800] WeightDrift: 0.025464259088039398
+[Step 6800] ReviewP: 0.800, CacheSize: 3200
+[Step 7000] BlockTime: 4.48s
+[Step 7000] LastLoss: 2.855381
+[Step 7000] WeightDrift: 0.02343488298356533
+[Step 7000] ReviewP: 0.800, CacheSize: 3400
+[Step 7200] BlockTime: 4.45s
+[Step 7200] LastLoss: 1.371876
+[Step 7200] WeightDrift: 0.02156386338174343
+[Step 7200] ReviewP: 0.800, CacheSize: 3600
+[Step 7400] BlockTime: 4.36s
+[Step 7400] LastLoss: 0.000230
+[Step 7400] WeightDrift: 0.019779177382588387
+[Step 7400] ReviewP: 0.800, CacheSize: 3800
+[Step 7600] BlockTime: 4.28s
+[Step 7600] LastLoss: 0.002561
+[Step 7600] WeightDrift: 0.018113231286406517
+[Step 7600] ReviewP: 0.800, CacheSize: 4000
+[Step 7800] BlockTime: 4.25s
+[Step 7800] LastLoss: 0.014251
+[Step 7800] WeightDrift: 0.016710367053747177
+[Step 7800] ReviewP: 0.800, CacheSize: 4200
+[Step 8000] BlockTime: 4.28s
+[Step 8000] LastLoss: 0.101826
+[Step 8000] WeightDrift: 0.015586729161441326
+[Step 8000] ReviewP: 0.800, CacheSize: 4400
+[Step 8000] TestAcc: 91.27%
+[Step 8000] EvalTime: 144.68s
+[NEW BEST] acc=91.27% at step=8000
+[Step 8200] BlockTime: 4.54s
+[Step 8200] LastLoss: 0.000208
+[Step 8200] WeightDrift: 0.014574558474123478
+[Step 8200] ReviewP: 0.800, CacheSize: 4600
+[Step 8400] BlockTime: 4.29s
+[Step 8400] LastLoss: 0.036754
+[Step 8400] WeightDrift: 0.013425150886178017
+[Step 8400] ReviewP: 0.800, CacheSize: 4800
+[Step 8600] BlockTime: 4.32s
+[Step 8600] LastLoss: 0.022743
+[Step 8600] WeightDrift: 0.012188845314085484
+[Step 8600] ReviewP: 0.800, CacheSize: 5000
+[Step 8800] BlockTime: 4.66s
+[Step 8800] LastLoss: 0.000519
+[Step 8800] WeightDrift: 0.011190895922482014
+[Step 8800] ReviewP: 0.800, CacheSize: 5200
+[Step 9000] BlockTime: 4.49s
+[Step 9000] LastLoss: 0.001800
+[Step 9000] WeightDrift: 0.0103551484644413
+[Step 9000] ReviewP: 0.800, CacheSize: 5400
+[Step 9200] BlockTime: 4.50s
+[Step 9200] LastLoss: 5.846001
+[Step 9200] WeightDrift: 0.009625141508877277
+[Step 9200] ReviewP: 0.800, CacheSize: 5600
+[Step 9400] BlockTime: 4.41s
+[Step 9400] LastLoss: 0.014985
+[Step 9400] WeightDrift: 0.008903032168745995
+[Step 9400] ReviewP: 0.800, CacheSize: 5800
+[Step 9600] BlockTime: 4.41s
+[Step 9600] LastLoss: 0.215562
+[Step 9600] WeightDrift: 0.008131606504321098
+[Step 9600] ReviewP: 0.800, CacheSize: 6000
+[Step 9800] BlockTime: 4.49s
+[Step 9800] LastLoss: 0.003688
+[Step 9800] WeightDrift: 0.007487623952329159
+[Step 9800] ReviewP: 0.800, CacheSize: 6200
+[Step 10000] BlockTime: 4.37s
+[Step 10000] LastLoss: 0.295575
+[Step 10000] WeightDrift: 0.0070323217660188675
+[Step 10000] ReviewP: 0.800, CacheSize: 6400
+[Step 10000] TestAcc: 92.08%
+[Step 10000] EvalTime: 145.04s
+[NEW BEST] acc=92.08% at step=10000
+[Step 10200] BlockTime: 4.53s
+[Step 10200] LastLoss: 0.000472
+[Step 10200] WeightDrift: 0.006493024993687868
+[Step 10200] ReviewP: 0.800, CacheSize: 6600
+[Step 10400] BlockTime: 4.45s
+[Step 10400] LastLoss: 0.102675
+[Step 10400] WeightDrift: 0.006084895227104425
+[Step 10400] ReviewP: 0.800, CacheSize: 6800
+[Step 10600] BlockTime: 4.52s
+[Step 10600] LastLoss: 0.016777
+[Step 10600] WeightDrift: 0.005809550639241934
+[Step 10600] ReviewP: 0.800, CacheSize: 7000
+[Step 10800] BlockTime: 4.64s
+[Step 10800] LastLoss: 0.000003
+[Step 10800] WeightDrift: 0.005378175526857376
+[Step 10800] ReviewP: 0.800, CacheSize: 7200
+[Step 11000] BlockTime: 4.51s
+[Step 11000] LastLoss: 0.000143
+[Step 11000] WeightDrift: 0.005046007223427296
+[Step 11000] ReviewP: 0.800, CacheSize: 7400
+[Step 11200] BlockTime: 4.59s
+[Step 11200] LastLoss: 0.000001
+[Step 11200] WeightDrift: 0.0047005098313093185
+[Step 11200] ReviewP: 0.800, CacheSize: 7600
+[Step 11400] BlockTime: 4.64s
+[Step 11400] LastLoss: 0.035129
+[Step 11400] WeightDrift: 0.004341104533523321
+[Step 11400] ReviewP: 0.800, CacheSize: 7800
+[Step 11600] BlockTime: 4.48s
+[Step 11600] LastLoss: 0.084459
+[Step 11600] WeightDrift: 0.004043980501592159
+[Step 11600] ReviewP: 0.800, CacheSize: 8000
+[Step 11800] BlockTime: 4.59s
+[Step 11800] LastLoss: 0.166213
+[Step 11800] WeightDrift: 0.0037422736641019583
+[Step 11800] ReviewP: 0.800, CacheSize: 8200
+[Step 12000] BlockTime: 4.46s
+[Step 12000] LastLoss: 0.024792
+[Step 12000] WeightDrift: 0.003498856909573078
+[Step 12000] ReviewP: 0.800, CacheSize: 8400
+[Step 12000] TestAcc: 93.35%
+[Step 12000] EvalTime: 145.85s
+[NEW BEST] acc=93.35% at step=12000
+[Step 12200] BlockTime: 4.83s
+[Step 12200] LastLoss: 0.002269
+[Step 12200] WeightDrift: 0.003341649193316698
+[Step 12200] ReviewP: 0.800, CacheSize: 8600
+[Step 12400] BlockTime: 4.51s
+[Step 12400] LastLoss: 2.656056
+[Step 12400] WeightDrift: 0.0031907649245113134
+[Step 12400] ReviewP: 0.800, CacheSize: 8800
+[Step 12600] BlockTime: 4.52s
+[Step 12600] LastLoss: 0.002210
+[Step 12600] WeightDrift: 0.0029643515590578318
+[Step 12600] ReviewP: 0.800, CacheSize: 9000
+[Step 12800] BlockTime: 4.54s
+[Step 12800] LastLoss: 0.000415
+[Step 12800] WeightDrift: 0.002733041765168309
+[Step 12800] ReviewP: 0.800, CacheSize: 9200
+[Step 13000] BlockTime: 4.45s
+[Step 13000] LastLoss: 0.002319
+[Step 13000] WeightDrift: 0.0025965494569391012
+[Step 13000] ReviewP: 0.800, CacheSize: 9400
+[Step 13200] BlockTime: 4.58s
+[Step 13200] LastLoss: 0.017948
+[Step 13200] WeightDrift: 0.0024356397334486246
+[Step 13200] ReviewP: 0.800, CacheSize: 9600
+[Step 13400] BlockTime: 4.58s
+[Step 13400] LastLoss: 4.610486
+[Step 13400] WeightDrift: 0.002291801618412137
+[Step 13400] ReviewP: 0.800, CacheSize: 9800
+[Step 13600] BlockTime: 4.63s
+[Step 13600] LastLoss: 0.004493
+[Step 13600] WeightDrift: 0.0021660432685166597
+[Step 13600] ReviewP: 0.800, CacheSize: 10000
+[Step 13800] BlockTime: 4.69s
+[Step 13800] LastLoss: 0.029917
+[Step 13800] WeightDrift: 0.002077610930427909
+[Step 13800] ReviewP: 0.800, CacheSize: 10200
+[Step 14000] BlockTime: 4.58s
+[Step 14000] LastLoss: 0.000653
+[Step 14000] WeightDrift: 0.001983613008633256
+[Step 14000] ReviewP: 0.800, CacheSize: 10400
+[Step 14000] TestAcc: 93.60%
+[Step 14000] EvalTime: 153.55s
+[NEW BEST] acc=93.60% at step=14000
+[Step 14200] BlockTime: 4.82s
+[Step 14200] LastLoss: 0.055152
+[Step 14200] WeightDrift: 0.001859628246165812
+[Step 14200] ReviewP: 0.800, CacheSize: 10600
+[Step 14400] BlockTime: 4.50s
+[Step 14400] LastLoss: 0.180334
+[Step 14400] WeightDrift: 0.0017264890484511852
+[Step 14400] ReviewP: 0.800, CacheSize: 10800
+[Step 14600] BlockTime: 4.52s
+[Step 14600] LastLoss: 0.000008
+[Step 14600] WeightDrift: 0.0016052582068368793
+[Step 14600] ReviewP: 0.800, CacheSize: 11000
+[Step 14800] BlockTime: 4.53s
+[Step 14800] LastLoss: 0.001182
+[Step 14800] WeightDrift: 0.0015163435600697994
+[Step 14800] ReviewP: 0.800, CacheSize: 11200
+[Step 15000] BlockTime: 4.46s
+[Step 15000] LastLoss: 0.000004
+[Step 15000] WeightDrift: 0.001439638901501894
+[Step 15000] ReviewP: 0.800, CacheSize: 11400
+[Step 15200] BlockTime: 4.55s
+[Step 15200] LastLoss: 0.000006
+[Step 15200] WeightDrift: 0.0013833108823746443
+[Step 15200] ReviewP: 0.800, CacheSize: 11600
+[Step 15400] BlockTime: 4.56s
+[Step 15400] LastLoss: 0.000693
+[Step 15400] WeightDrift: 0.0013099481584504247
+[Step 15400] ReviewP: 0.800, CacheSize: 11800
+[Step 15600] BlockTime: 4.83s
+[Step 15600] LastLoss: 0.000033
+[Step 15600] WeightDrift: 0.001222878461703658
+[Step 15600] ReviewP: 0.800, CacheSize: 12000
+[Step 15800] BlockTime: 4.69s
+[Step 15800] LastLoss: 0.000012
+[Step 15800] WeightDrift: 0.0011665020138025284
+[Step 15800] ReviewP: 0.800, CacheSize: 12200
+[Step 16000] BlockTime: 4.74s
+[Step 16000] LastLoss: 0.630231
+[Step 16000] WeightDrift: 0.001116568106226623
+[Step 16000] ReviewP: 0.800, CacheSize: 12400
+[Step 16000] TestAcc: 93.62%
+[Step 16000] EvalTime: 152.65s
+[NEW BEST] acc=93.62% at step=16000
+[Step 16200] BlockTime: 5.01s
+[Step 16200] LastLoss: 0.021482
+[Step 16200] WeightDrift: 0.0010616974905133247
+[Step 16200] ReviewP: 0.800, CacheSize: 12600
+[Step 16400] BlockTime: 4.98s
+[Step 16400] LastLoss: 0.001281
+[Step 16400] WeightDrift: 0.0010023448849096894
+[Step 16400] ReviewP: 0.800, CacheSize: 12800
+[Step 16600] BlockTime: 5.09s
+[Step 16600] LastLoss: 1.049046
+[Step 16600] WeightDrift: 0.0009482319001108408
+[Step 16600] ReviewP: 0.800, CacheSize: 13000
+[Step 16800] BlockTime: 4.95s
+[Step 16800] LastLoss: 0.000126
+[Step 16800] WeightDrift: 0.0008890479803085327
+[Step 16800] ReviewP: 0.800, CacheSize: 13200
+[Step 17000] BlockTime: 4.86s
+[Step 17000] LastLoss: 0.130635
+[Step 17000] WeightDrift: 0.0008357628830708563
+[Step 17000] ReviewP: 0.800, CacheSize: 13400
+[Step 17200] BlockTime: 4.81s
+[Step 17200] LastLoss: 0.046913
+[Step 17200] WeightDrift: 0.0007750982767902315
+[Step 17200] ReviewP: 0.800, CacheSize: 13600
+[Step 17400] BlockTime: 4.72s
+[Step 17400] LastLoss: 0.000003
+[Step 17400] WeightDrift: 0.0007362939068116248
+[Step 17400] ReviewP: 0.800, CacheSize: 13800
+[Step 17600] BlockTime: 4.97s
+[Step 17600] LastLoss: 0.000152
+[Step 17600] WeightDrift: 0.0007085821707732975
+[Step 17600] ReviewP: 0.800, CacheSize: 14000
+[Step 17800] BlockTime: 4.67s
+[Step 17800] LastLoss: 0.000015
+[Step 17800] WeightDrift: 0.0006685342523269355
+[Step 17800] ReviewP: 0.800, CacheSize: 14200
+[Step 18000] BlockTime: 4.91s
+[Step 18000] LastLoss: 0.084373
+[Step 18000] WeightDrift: 0.0006453802925534546
+[Step 18000] ReviewP: 0.800, CacheSize: 14400
+[Step 18000] TestAcc: 94.19%
+[Step 18000] EvalTime: 149.57s
+[NEW BEST] acc=94.19% at step=18000
+[Step 18200] BlockTime: 5.10s
+[Step 18200] LastLoss: 0.000089
+[Step 18200] WeightDrift: 0.000621885119471699
+[Step 18200] ReviewP: 0.800, CacheSize: 14600
+[Step 18400] BlockTime: 4.82s
+[Step 18400] LastLoss: 0.000002
+[Step 18400] WeightDrift: 0.0005906123551540077
+[Step 18400] ReviewP: 0.800, CacheSize: 14800
+[Step 18600] BlockTime: 4.64s
+[Step 18600] LastLoss: 0.033386
+[Step 18600] WeightDrift: 0.0005659396410919726
+[Step 18600] ReviewP: 0.800, CacheSize: 15000
+[Step 18800] BlockTime: 4.62s
+[Step 18800] LastLoss: 0.024036
+[Step 18800] WeightDrift: 0.0005454924539662898
+[Step 18800] ReviewP: 0.800, CacheSize: 15200
+[Step 19000] BlockTime: 4.73s
+[Step 19000] LastLoss: 0.043688
+[Step 19000] WeightDrift: 0.0005166481714695692
+[Step 19000] ReviewP: 0.800, CacheSize: 15400
+[Step 19200] BlockTime: 4.91s
+[Step 19200] LastLoss: 0.000742
+[Step 19200] WeightDrift: 0.0004889437695965171
+[Step 19200] ReviewP: 0.800, CacheSize: 15600
+[Step 19400] BlockTime: 4.75s
+[Step 19400] LastLoss: 0.045464
+[Step 19400] WeightDrift: 0.0004658436228055507
+[Step 19400] ReviewP: 0.800, CacheSize: 15800
+[Step 19600] BlockTime: 4.81s
+[Step 19600] LastLoss: 0.000091
+[Step 19600] WeightDrift: 0.0004523393581621349
+[Step 19600] ReviewP: 0.800, CacheSize: 16000
+[Step 19800] BlockTime: 4.83s
+[Step 19800] LastLoss: 0.000571
+[Step 19800] WeightDrift: 0.00043524790089577436
+[Step 19800] ReviewP: 0.800, CacheSize: 16200
+[Step 20000] BlockTime: 4.60s
+[Step 20000] LastLoss: 0.004549
+[Step 20000] WeightDrift: 0.00041884035454131663
+[Step 20000] ReviewP: 0.800, CacheSize: 16400
+[Step 20000] TestAcc: 94.39%
+[Step 20000] EvalTime: 154.38s
+[NEW BEST] acc=94.39% at step=20000
+[Step 20200] BlockTime: 4.90s
+[Step 20200] LastLoss: 0.000096
+[Step 20200] WeightDrift: 0.00040044408524408937
+[Step 20200] ReviewP: 0.800, CacheSize: 16600
+[Step 20400] BlockTime: 4.70s
+[Step 20400] LastLoss: 0.000114
+[Step 20400] WeightDrift: 0.0003826059109997004
+[Step 20400] ReviewP: 0.800, CacheSize: 16800
+[Step 20600] BlockTime: 4.62s
+[Step 20600] LastLoss: 0.021310
+[Step 20600] WeightDrift: 0.00036140973679721355
+[Step 20600] ReviewP: 0.800, CacheSize: 17000
+[Step 20800] BlockTime: 4.77s
+[Step 20800] LastLoss: 0.000000
+[Step 20800] WeightDrift: 0.00034193432657048106
+[Step 20800] ReviewP: 0.800, CacheSize: 17200
+[Step 21000] BlockTime: 4.64s
+[Step 21000] LastLoss: 0.002473
+[Step 21000] WeightDrift: 0.000330753973685205
+[Step 21000] ReviewP: 0.800, CacheSize: 17400
+[Step 21200] BlockTime: 4.98s
+[Step 21200] LastLoss: 0.000000
+[Step 21200] WeightDrift: 0.000316514604492113
+[Step 21200] ReviewP: 0.800, CacheSize: 17600
+[Step 21400] BlockTime: 5.01s
+[Step 21400] LastLoss: 0.000065
+[Step 21400] WeightDrift: 0.0003001241711899638
+[Step 21400] ReviewP: 0.800, CacheSize: 17800
+[Step 21600] BlockTime: 4.92s
+[Step 21600] LastLoss: 0.000050
+[Step 21600] WeightDrift: 0.0002840660745278001
+[Step 21600] ReviewP: 0.800, CacheSize: 18000
+[Step 21800] BlockTime: 4.83s
+[Step 21800] LastLoss: 0.000000
+[Step 21800] WeightDrift: 0.00027214031433686614
+[Step 21800] ReviewP: 0.800, CacheSize: 18200
+[Step 22000] BlockTime: 4.97s
+[Step 22000] LastLoss: 0.081230
+[Step 22000] WeightDrift: 0.0002621957683004439
+[Step 22000] ReviewP: 0.800, CacheSize: 18400
+[Step 22000] TestAcc: 94.27%
+[Step 22000] EvalTime: 167.38s
+[Step 22200] BlockTime: 5.05s
+[Step 22200] LastLoss: 0.000649
+[Step 22200] WeightDrift: 0.0002483963326085359
+[Step 22200] ReviewP: 0.800, CacheSize: 18600
+[Step 22400] BlockTime: 4.65s
+[Step 22400] LastLoss: 0.188380
+[Step 22400] WeightDrift: 0.00023623317247256637
+[Step 22400] ReviewP: 0.800, CacheSize: 18800
+[Step 22600] BlockTime: 4.88s
+[Step 22600] LastLoss: 0.025645
+[Step 22600] WeightDrift: 0.00022743368754163384
+[Step 22600] ReviewP: 0.800, CacheSize: 19000
+[Step 22800] BlockTime: 4.79s
+[Step 22800] LastLoss: 0.000101
+[Step 22800] WeightDrift: 0.0002169031504308805
+[Step 22800] ReviewP: 0.800, CacheSize: 19200
+[Step 23000] BlockTime: 4.55s
+[Step 23000] LastLoss: 0.116854
+[Step 23000] WeightDrift: 0.00020817911718040705
+[Step 23000] ReviewP: 0.800, CacheSize: 19400
+[Step 23200] BlockTime: 4.99s
+[Step 23200] LastLoss: 0.000920
+[Step 23200] WeightDrift: 0.00020296985167078674
+[Step 23200] ReviewP: 0.800, CacheSize: 19600
+[Step 23400] BlockTime: 4.90s
+[Step 23400] LastLoss: 0.002019
+[Step 23400] WeightDrift: 0.0001957224594661966
+[Step 23400] ReviewP: 0.800, CacheSize: 19800
+[Step 23600] BlockTime: 4.77s
+[Step 23600] LastLoss: 0.003293
+[Step 23600] WeightDrift: 0.00018550801905803382
+[Step 23600] ReviewP: 0.800, CacheSize: 20000
+[Step 23800] BlockTime: 4.65s
+[Step 23800] LastLoss: 0.137626
+[Step 23800] WeightDrift: 0.00017748374375514686
+[Step 23800] ReviewP: 0.800, CacheSize: 20000
+[Step 24000] BlockTime: 4.88s
+[Step 24000] LastLoss: 0.000178
+[Step 24000] WeightDrift: 0.00016908079851418734
+[Step 24000] ReviewP: 0.800, CacheSize: 20000
+[Step 24000] TestAcc: 94.43%
+[Step 24000] EvalTime: 159.12s
+[NEW BEST] acc=94.43% at step=24000
+[Step 24200] BlockTime: 5.03s
+[Step 24200] LastLoss: 0.000058
+[Step 24200] WeightDrift: 0.00016116916958708316
+[Step 24200] ReviewP: 0.800, CacheSize: 20000
+[Step 24400] BlockTime: 4.84s
+[Step 24400] LastLoss: 0.000045
+[Step 24400] WeightDrift: 0.00015692574379500002
+[Step 24400] ReviewP: 0.800, CacheSize: 20000
+[Step 24600] BlockTime: 4.75s
+[Step 24600] LastLoss: 0.346762
+[Step 24600] WeightDrift: 0.00015353679191321135
+[Step 24600] ReviewP: 0.800, CacheSize: 20000
+[Step 24800] BlockTime: 4.91s
+[Step 24800] LastLoss: 0.061158
+[Step 24800] WeightDrift: 0.00014922369155101478
+[Step 24800] ReviewP: 0.800, CacheSize: 20000
+[Step 25000] BlockTime: 4.88s
+[Step 25000] LastLoss: 0.000043
+[Step 25000] WeightDrift: 0.00014202023157849908
+[Step 25000] ReviewP: 0.800, CacheSize: 20000
+[Step 25200] BlockTime: 4.52s
+[Step 25200] LastLoss: 0.000023
+[Step 25200] WeightDrift: 0.00013471591228153557
+[Step 25200] ReviewP: 0.800, CacheSize: 20000
+[Step 25400] BlockTime: 5.09s
+[Step 25400] LastLoss: 0.000505
+[Step 25400] WeightDrift: 0.00012917947606183589
+[Step 25400] ReviewP: 0.800, CacheSize: 20000
+[Step 25600] BlockTime: 4.89s
+[Step 25600] LastLoss: 0.078289
+[Step 25600] WeightDrift: 0.00012293022882658988
+[Step 25600] ReviewP: 0.800, CacheSize: 20000
+[Step 25800] BlockTime: 4.85s
+[Step 25800] LastLoss: 0.000633
+[Step 25800] WeightDrift: 0.00011682570038828999
+[Step 25800] ReviewP: 0.800, CacheSize: 20000
+[Step 26000] BlockTime: 4.87s
+[Step 26000] LastLoss: 0.000005
+[Step 26000] WeightDrift: 0.00011239182640565559
+[Step 26000] ReviewP: 0.800, CacheSize: 20000
+[Step 26000] TestAcc: 94.49%
+[Step 26000] EvalTime: 159.97s
+[NEW BEST] acc=94.49% at step=26000
+[Step 26200] BlockTime: 5.40s
+[Step 26200] LastLoss: 0.806470
+[Step 26200] WeightDrift: 0.00010854977153940126
+[Step 26200] ReviewP: 0.800, CacheSize: 20000
+[Step 26400] BlockTime: 4.81s
+[Step 26400] LastLoss: 0.001896
+[Step 26400] WeightDrift: 0.00010472685244167224
+[Step 26400] ReviewP: 0.800, CacheSize: 20000
+[Step 26600] BlockTime: 5.01s
+[Step 26600] LastLoss: 0.013912
+[Step 26600] WeightDrift: 0.0001012110078590922
+[Step 26600] ReviewP: 0.800, CacheSize: 20000
+[Step 26800] BlockTime: 4.95s
+[Step 26800] LastLoss: 0.000009
+[Step 26800] WeightDrift: 9.808773029362783e-05
+[Step 26800] ReviewP: 0.800, CacheSize: 20000
+[Step 27000] BlockTime: 4.78s
+[Step 27000] LastLoss: 0.008887
+[Step 27000] WeightDrift: 9.550940740155056e-05
+[Step 27000] ReviewP: 0.800, CacheSize: 20000
+[Step 27200] BlockTime: 4.90s
+[Step 27200] LastLoss: 0.007008
+[Step 27200] WeightDrift: 9.062212484423071e-05
+[Step 27200] ReviewP: 0.800, CacheSize: 20000
+[Step 27400] BlockTime: 4.87s
+[Step 27400] LastLoss: 0.000001
+[Step 27400] WeightDrift: 8.573674858780578e-05
+[Step 27400] ReviewP: 0.800, CacheSize: 20000
+[Step 27600] BlockTime: 4.95s
+[Step 27600] LastLoss: 0.022222
+[Step 27600] WeightDrift: 8.265602809842676e-05
+[Step 27600] ReviewP: 0.800, CacheSize: 20000
+[Step 27800] BlockTime: 4.99s
+[Step 27800] LastLoss: 0.000000
+[Step 27800] WeightDrift: 8.027094736462459e-05
+[Step 27800] ReviewP: 0.800, CacheSize: 20000
+[Step 28000] BlockTime: 4.86s
+[Step 28000] LastLoss: 0.001510
+[Step 28000] WeightDrift: 7.846301741665229e-05
+[Step 28000] ReviewP: 0.800, CacheSize: 20000
+[Step 28000] TestAcc: 94.41%
+[Step 28000] EvalTime: 160.51s
+[Step 28200] BlockTime: 5.00s
+[Step 28200] LastLoss: 0.039697
+[Step 28200] WeightDrift: 7.658558752154931e-05
+[Step 28200] ReviewP: 0.800, CacheSize: 20000
+[Step 28400] BlockTime: 4.91s
+[Step 28400] LastLoss: 0.002614
+[Step 28400] WeightDrift: 7.40534087526612e-05
+[Step 28400] ReviewP: 0.800, CacheSize: 20000
+[Step 28600] BlockTime: 4.62s
+[Step 28600] LastLoss: 0.007780
+[Step 28600] WeightDrift: 6.999885954428464e-05
+[Step 28600] ReviewP: 0.800, CacheSize: 20000
+[Step 28800] BlockTime: 4.75s
+[Step 28800] LastLoss: 0.001398
+[Step 28800] WeightDrift: 6.67310378048569e-05
+[Step 28800] ReviewP: 0.800, CacheSize: 20000
+[Step 29000] BlockTime: 4.79s
+[Step 29000] LastLoss: 0.000003
+[Step 29000] WeightDrift: 6.438147829612717e-05
+[Step 29000] ReviewP: 0.800, CacheSize: 20000
+[Step 29200] BlockTime: 4.65s
+[Step 29200] LastLoss: 0.000007
+[Step 29200] WeightDrift: 6.202614167705178e-05
+[Step 29200] ReviewP: 0.800, CacheSize: 20000
+[Step 29400] BlockTime: 5.06s
+[Step 29400] LastLoss: 0.000429
+[Step 29400] WeightDrift: 5.916816007811576e-05
+[Step 29400] ReviewP: 0.800, CacheSize: 20000
+[Step 29600] BlockTime: 4.94s
+[Step 29600] LastLoss: 0.001029
+[Step 29600] WeightDrift: 5.6488574045943096e-05
+[Step 29600] ReviewP: 0.800, CacheSize: 20000
+[Step 29800] BlockTime: 4.84s
+[Step 29800] LastLoss: 0.676196
+[Step 29800] WeightDrift: 5.536520620808005e-05
+[Step 29800] ReviewP: 0.800, CacheSize: 20000
+[Step 30000] BlockTime: 4.92s
+[Step 30000] LastLoss: 0.041546
+[Step 30000] WeightDrift: 5.3449810366146266e-05
+[Step 30000] ReviewP: 0.800, CacheSize: 20000
+[Step 30000] TestAcc: 94.73%
+[Step 30000] EvalTime: 167.37s
+[NEW BEST] acc=94.73% at step=30000
+[Step 30200] BlockTime: 4.90s
+[Step 30200] LastLoss: 0.000002
+[Step 30200] WeightDrift: 5.241662438493222e-05
+[Step 30200] ReviewP: 0.800, CacheSize: 20000
+[Step 30400] BlockTime: 4.80s
+[Step 30400] LastLoss: 0.000103
+[Step 30400] WeightDrift: 5.032342596678063e-05
+[Step 30400] ReviewP: 0.800, CacheSize: 20000
+[Step 30600] BlockTime: 4.94s
+[Step 30600] LastLoss: 0.000016
+[Step 30600] WeightDrift: 4.892414654023014e-05
+[Step 30600] ReviewP: 0.800, CacheSize: 20000
+[Step 30800] BlockTime: 4.91s
+[Step 30800] LastLoss: 0.000038
+[Step 30800] WeightDrift: 4.7291814553318545e-05
+[Step 30800] ReviewP: 0.800, CacheSize: 20000
+[Step 31000] BlockTime: 4.90s
+[Step 31000] LastLoss: 0.041983
+[Step 31000] WeightDrift: 4.6344459406100214e-05
+[Step 31000] ReviewP: 0.800, CacheSize: 20000
+[Step 31200] BlockTime: 4.97s
+[Step 31200] LastLoss: 0.000011
+[Step 31200] WeightDrift: 4.522567905951291e-05
+[Step 31200] ReviewP: 0.800, CacheSize: 20000
+[Step 31400] BlockTime: 4.88s
+[Step 31400] LastLoss: 0.021428
+[Step 31400] WeightDrift: 4.387766239233315e-05
+[Step 31400] ReviewP: 0.800, CacheSize: 20000
+[Step 31600] BlockTime: 5.08s
+[Step 31600] LastLoss: 0.011937
+[Step 31600] WeightDrift: 4.246574462740682e-05
+[Step 31600] ReviewP: 0.800, CacheSize: 20000
+[Step 31800] BlockTime: 4.73s
+[Step 31800] LastLoss: 0.000000
+[Step 31800] WeightDrift: 4.032289871247485e-05
+[Step 31800] ReviewP: 0.800, CacheSize: 20000
+[Step 32000] BlockTime: 4.99s
+[Step 32000] LastLoss: 0.000000
+[Step 32000] WeightDrift: 3.890418884111568e-05
+[Step 32000] ReviewP: 0.800, CacheSize: 20000
+[Step 32000] TestAcc: 94.84%
+[Step 32000] EvalTime: 154.35s
+[NEW BEST] acc=94.84% at step=32000
+[Step 32200] BlockTime: 5.17s
+[Step 32200] LastLoss: 0.000002
+[Step 32200] WeightDrift: 3.78046024707146e-05
+[Step 32200] ReviewP: 0.800, CacheSize: 20000
+[Step 32400] BlockTime: 4.87s
+[Step 32400] LastLoss: 0.838776
+[Step 32400] WeightDrift: 3.673923129099421e-05
+[Step 32400] ReviewP: 0.800, CacheSize: 20000
+[Step 32600] BlockTime: 4.72s
+[Step 32600] LastLoss: 0.000041
+[Step 32600] WeightDrift: 3.5962879337603226e-05
+[Step 32600] ReviewP: 0.800, CacheSize: 20000
+[Step 32800] BlockTime: 4.99s
+[Step 32800] LastLoss: 0.126965
+[Step 32800] WeightDrift: 3.479325823718682e-05
+[Step 32800] ReviewP: 0.800, CacheSize: 20000
+[Step 33000] BlockTime: 4.95s
+[Step 33000] LastLoss: 0.000177
+[Step 33000] WeightDrift: 3.3513842936372384e-05
+[Step 33000] ReviewP: 0.800, CacheSize: 20000
+[Step 33200] BlockTime: 4.94s
+[Step 33200] LastLoss: 0.000553
+[Step 33200] WeightDrift: 3.2296240533469245e-05
+[Step 33200] ReviewP: 0.800, CacheSize: 20000
+[Step 33400] BlockTime: 5.00s
+[Step 33400] LastLoss: 0.352858
+[Step 33400] WeightDrift: 3.128695607301779e-05
+[Step 33400] ReviewP: 0.800, CacheSize: 20000
+[Step 33600] BlockTime: 4.78s
+[Step 33600] LastLoss: 0.095790
+[Step 33600] WeightDrift: 3.098636807408184e-05
+[Step 33600] ReviewP: 0.800, CacheSize: 20000
+[Step 33800] BlockTime: 4.68s
+[Step 33800] LastLoss: 0.003332
+[Step 33800] WeightDrift: 3.000497781613376e-05
+[Step 33800] ReviewP: 0.800, CacheSize: 20000
+[Step 34000] BlockTime: 4.49s
+[Step 34000] LastLoss: 0.046862
+[Step 34000] WeightDrift: 2.9196322429925203e-05
+[Step 34000] ReviewP: 0.800, CacheSize: 20000
+[Step 34000] TestAcc: 94.67%
+[Step 34000] EvalTime: 146.47s
+[Step 34200] BlockTime: 4.76s
+[Step 34200] LastLoss: 0.000005
+[Step 34200] WeightDrift: 2.79442665487295e-05
+[Step 34200] ReviewP: 0.800, CacheSize: 20000
+[Step 34400] BlockTime: 4.69s
+[Step 34400] LastLoss: 0.000000
+[Step 34400] WeightDrift: 2.644908454385586e-05
+[Step 34400] ReviewP: 0.800, CacheSize: 20000
+[Step 34600] BlockTime: 4.68s
+[Step 34600] LastLoss: 0.074531
+[Step 34600] WeightDrift: 2.586734262877144e-05
+[Step 34600] ReviewP: 0.800, CacheSize: 20000
+[Step 34800] BlockTime: 4.61s
+[Step 34800] LastLoss: 0.330810
+[Step 34800] WeightDrift: 2.494525870133657e-05
+[Step 34800] ReviewP: 0.800, CacheSize: 20000
+[Step 35000] BlockTime: 4.76s
+[Step 35000] LastLoss: 0.000000
+[Step 35000] WeightDrift: 2.431940993119497e-05
+[Step 35000] ReviewP: 0.800, CacheSize: 20000
+[Step 35200] BlockTime: 4.41s
+[Step 35200] LastLoss: 0.023083
+[Step 35200] WeightDrift: 2.3638367565581575e-05
+[Step 35200] ReviewP: 0.800, CacheSize: 20000
+[Step 35400] BlockTime: 4.70s
+[Step 35400] LastLoss: 0.084647
+[Step 35400] WeightDrift: 2.2634983906755224e-05
+[Step 35400] ReviewP: 0.800, CacheSize: 20000
+[Step 35600] BlockTime: 4.64s
+[Step 35600] LastLoss: 0.830957
+[Step 35600] WeightDrift: 2.1931409719400108e-05
+[Step 35600] ReviewP: 0.800, CacheSize: 20000
+[Step 35800] BlockTime: 4.63s
+[Step 35800] LastLoss: 0.003556
+[Step 35800] WeightDrift: 2.1392046619439498e-05
+[Step 35800] ReviewP: 0.800, CacheSize: 20000
+[Step 36000] BlockTime: 4.56s
+[Step 36000] LastLoss: 0.000352
+[Step 36000] WeightDrift: 2.0932733605150133e-05
+[Step 36000] ReviewP: 0.800, CacheSize: 20000
+[Step 36000] TestAcc: 94.63%
+[Step 36000] EvalTime: 158.55s
+[Step 36200] BlockTime: 4.81s
+[Step 36200] LastLoss: 0.000103
+[Step 36200] WeightDrift: 2.027314985753037e-05
+[Step 36200] ReviewP: 0.800, CacheSize: 20000
+[Step 36400] BlockTime: 4.60s
+[Step 36400] LastLoss: 0.000000
+[Step 36400] WeightDrift: 1.976472049136646e-05
+[Step 36400] ReviewP: 0.800, CacheSize: 20000
+[Step 36600] BlockTime: 4.51s
+[Step 36600] LastLoss: 0.000001
+[Step 36600] WeightDrift: 1.9463539501884952e-05
+[Step 36600] ReviewP: 0.800, CacheSize: 20000
+[Step 36800] BlockTime: 4.81s
+[Step 36800] LastLoss: 0.000001
+[Step 36800] WeightDrift: 1.88124777196208e-05
+[Step 36800] ReviewP: 0.800, CacheSize: 20000
+[Step 37000] BlockTime: 4.51s
+[Step 37000] LastLoss: 0.000102
+[Step 37000] WeightDrift: 1.8362521586823277e-05
+[Step 37000] ReviewP: 0.800, CacheSize: 20000
+[Step 37200] BlockTime: 4.62s
+[Step 37200] LastLoss: 0.587531
+[Step 37200] WeightDrift: 1.8173992430092767e-05
+[Step 37200] ReviewP: 0.800, CacheSize: 20000
+[Step 37400] BlockTime: 4.50s
+[Step 37400] LastLoss: 0.000000
+[Step 37400] WeightDrift: 1.7344296793453395e-05
+[Step 37400] ReviewP: 0.800, CacheSize: 20000
+[Step 37600] BlockTime: 4.58s
+[Step 37600] LastLoss: 0.000000
+[Step 37600] WeightDrift: 1.649820842430927e-05
+[Step 37600] ReviewP: 0.800, CacheSize: 20000
+[Step 37800] BlockTime: 4.74s
+[Step 37800] LastLoss: 0.002049
+[Step 37800] WeightDrift: 1.555484595883172e-05
+[Step 37800] ReviewP: 0.800, CacheSize: 20000
+[Step 38000] BlockTime: 4.75s
+[Step 38000] LastLoss: 0.017674
+[Step 38000] WeightDrift: 1.4815926988376305e-05
+[Step 38000] ReviewP: 0.800, CacheSize: 20000
+[Step 38000] TestAcc: 94.99%
+[Step 38000] EvalTime: 158.01s
+[NEW BEST] acc=94.99% at step=38000
+[Step 38200] BlockTime: 5.07s
+[Step 38200] LastLoss: 0.184271
+[Step 38200] WeightDrift: 1.4376044418895617e-05
+[Step 38200] ReviewP: 0.800, CacheSize: 20000
+[Step 38400] BlockTime: 4.77s
+[Step 38400] LastLoss: 0.000410
+[Step 38400] WeightDrift: 1.4419138096855022e-05
+[Step 38400] ReviewP: 0.800, CacheSize: 20000
+[Step 38600] BlockTime: 4.66s
+[Step 38600] LastLoss: 2.326023
+[Step 38600] WeightDrift: 1.427334518666612e-05
+[Step 38600] ReviewP: 0.800, CacheSize: 20000
+[Step 38800] BlockTime: 4.66s
+[Step 38800] LastLoss: 0.011559
+[Step 38800] WeightDrift: 1.3959229363535997e-05
+[Step 38800] ReviewP: 0.800, CacheSize: 20000
+[Step 39000] BlockTime: 4.75s
+[Step 39000] LastLoss: 0.000335
+[Step 39000] WeightDrift: 1.3513326848624274e-05
+[Step 39000] ReviewP: 0.800, CacheSize: 20000
+[Step 39200] BlockTime: 4.51s
+[Step 39200] LastLoss: 0.000000
+[Step 39200] WeightDrift: 1.2934147889609449e-05
+[Step 39200] ReviewP: 0.800, CacheSize: 20000
+[Step 39400] BlockTime: 4.45s
+[Step 39400] LastLoss: 0.000000
+[Step 39400] WeightDrift: 1.2472510206862353e-05
+[Step 39400] ReviewP: 0.800, CacheSize: 20000
+[Step 39600] BlockTime: 4.57s
+[Step 39600] LastLoss: 0.001055
+[Step 39600] WeightDrift: 1.2086272363376338e-05
+[Step 39600] ReviewP: 0.800, CacheSize: 20000
+[Step 39800] BlockTime: 4.59s
+[Step 39800] LastLoss: 0.232344
+[Step 39800] WeightDrift: 1.1805951544374693e-05
+[Step 39800] ReviewP: 0.800, CacheSize: 20000
+[Step 40000] BlockTime: 4.58s
+[Step 40000] LastLoss: 0.000226
+[Step 40000] WeightDrift: 1.1594414900173433e-05
+[Step 40000] ReviewP: 0.800, CacheSize: 20000
+[Step 40000] TestAcc: 94.72%
+[Step 40000] EvalTime: 145.11s
+[Step 40200] BlockTime: 4.72s
+[Step 40200] LastLoss: 0.510832
+[Step 40200] WeightDrift: 1.0974586075462867e-05
+[Step 40200] ReviewP: 0.800, CacheSize: 20000
+[Step 40400] BlockTime: 4.86s
+[Step 40400] LastLoss: 0.012385
+[Step 40400] WeightDrift: 1.0685622328310274e-05
+[Step 40400] ReviewP: 0.800, CacheSize: 20000
+[Step 40600] BlockTime: 4.71s
+[Step 40600] LastLoss: 0.000020
+[Step 40600] WeightDrift: 1.0514498171687592e-05
+[Step 40600] ReviewP: 0.800, CacheSize: 20000
+[Step 40800] BlockTime: 4.91s
+[Step 40800] LastLoss: 0.009695
+[Step 40800] WeightDrift: 1.0316073712601792e-05
+[Step 40800] ReviewP: 0.800, CacheSize: 20000
+[Step 41000] BlockTime: 4.80s
+[Step 41000] LastLoss: 0.000526
+[Step 41000] WeightDrift: 1.0165512321691494e-05
+[Step 41000] ReviewP: 0.800, CacheSize: 20000
+[Step 41200] BlockTime: 4.84s
+[Step 41200] LastLoss: 0.000735
+[Step 41200] WeightDrift: 9.72950419964036e-06
+[Step 41200] ReviewP: 0.800, CacheSize: 20000
+[Step 41400] BlockTime: 4.67s
+[Step 41400] LastLoss: 0.012929
+[Step 41400] WeightDrift: 9.349346328235697e-06
+[Step 41400] ReviewP: 0.800, CacheSize: 20000
+[Step 41600] BlockTime: 4.58s
+[Step 41600] LastLoss: 0.020992
+[Step 41600] WeightDrift: 9.08112542674644e-06
+[Step 41600] ReviewP: 0.800, CacheSize: 20000
+[Step 41800] BlockTime: 5.02s
+[Step 41800] LastLoss: 0.005117
+[Step 41800] WeightDrift: 8.995532880362589e-06
+[Step 41800] ReviewP: 0.800, CacheSize: 20000
+[Step 42000] BlockTime: 5.16s
+[Step 42000] LastLoss: 0.000000
+[Step 42000] WeightDrift: 8.695304131833836e-06
+[Step 42000] ReviewP: 0.800, CacheSize: 20000
+[Step 42000] TestAcc: 95.10%
+[Step 42000] EvalTime: 152.45s
+[NEW BEST] acc=95.10% at step=42000
+[Step 42200] BlockTime: 5.13s
+[Step 42200] LastLoss: 0.000002
+[Step 42200] WeightDrift: 8.196831004170235e-06
+[Step 42200] ReviewP: 0.800, CacheSize: 20000
+[Step 42400] BlockTime: 4.68s
+[Step 42400] LastLoss: 0.000000
+[Step 42400] WeightDrift: 8.03244074631948e-06
+[Step 42400] ReviewP: 0.800, CacheSize: 20000
+[Step 42600] BlockTime: 4.63s
+[Step 42600] LastLoss: 0.003140
+[Step 42600] WeightDrift: 7.766127964714542e-06
+[Step 42600] ReviewP: 0.800, CacheSize: 20000
+[Step 42800] BlockTime: 4.70s
+[Step 42800] LastLoss: 0.055365
+[Step 42800] WeightDrift: 7.465481758117676e-06
+[Step 42800] ReviewP: 0.800, CacheSize: 20000
+[Step 43000] BlockTime: 4.71s
+[Step 43000] LastLoss: 0.000384
+[Step 43000] WeightDrift: 7.191657914518146e-06
+[Step 43000] ReviewP: 0.800, CacheSize: 20000
+[Step 43200] BlockTime: 4.69s
+[Step 43200] LastLoss: 0.000084
+[Step 43200] WeightDrift: 6.882130946905818e-06
+[Step 43200] ReviewP: 0.800, CacheSize: 20000
+[Step 43400] BlockTime: 4.47s
+[Step 43400] LastLoss: 0.002751
+[Step 43400] WeightDrift: 6.7086220951750875e-06
+[Step 43400] ReviewP: 0.800, CacheSize: 20000
+[Step 43600] BlockTime: 4.69s
+[Step 43600] LastLoss: 0.000002
+[Step 43600] WeightDrift: 6.552517334057484e-06
+[Step 43600] ReviewP: 0.800, CacheSize: 20000
+[Step 43800] BlockTime: 4.54s
+[Step 43800] LastLoss: 0.000004
+[Step 43800] WeightDrift: 6.288945769483689e-06
+[Step 43800] ReviewP: 0.800, CacheSize: 20000
+[Step 44000] BlockTime: 4.74s
+[Step 44000] LastLoss: 0.002435
+[Step 44000] WeightDrift: 6.02388399784104e-06
+[Step 44000] ReviewP: 0.800, CacheSize: 20000
+[Step 44000] TestAcc: 94.83%
+[Step 44000] EvalTime: 150.94s
+[Step 44200] BlockTime: 4.77s
+[Step 44200] LastLoss: 0.239500
+[Step 44200] WeightDrift: 5.739987045672024e-06
+[Step 44200] ReviewP: 0.800, CacheSize: 20000
+[Step 44400] BlockTime: 4.76s
+[Step 44400] LastLoss: 0.023654
+[Step 44400] WeightDrift: 5.6117773965524975e-06
+[Step 44400] ReviewP: 0.800, CacheSize: 20000
+[Step 44600] BlockTime: 4.67s
+[Step 44600] LastLoss: 0.272103
+[Step 44600] WeightDrift: 5.4479241953231394e-06
+[Step 44600] ReviewP: 0.800, CacheSize: 20000
+[Step 44800] BlockTime: 4.72s
+[Step 44800] LastLoss: 0.085699
+[Step 44800] WeightDrift: 5.40190922038164e-06
+[Step 44800] ReviewP: 0.800, CacheSize: 20000
+[Step 45000] BlockTime: 4.54s
+[Step 45000] LastLoss: 0.014056
+[Step 45000] WeightDrift: 5.242228326096665e-06
+[Step 45000] ReviewP: 0.800, CacheSize: 20000
+[Step 45200] BlockTime: 4.67s
+[Step 45200] LastLoss: 0.000322
+[Step 45200] WeightDrift: 5.089461865281919e-06
+[Step 45200] ReviewP: 0.800, CacheSize: 20000
+[Step 45400] BlockTime: 4.81s
+[Step 45400] LastLoss: 0.000147
+[Step 45400] WeightDrift: 4.984319275536109e-06
+[Step 45400] ReviewP: 0.800, CacheSize: 20000
+[Step 45600] BlockTime: 4.86s
+[Step 45600] LastLoss: 0.140191
+[Step 45600] WeightDrift: 4.8716069613874424e-06
+[Step 45600] ReviewP: 0.800, CacheSize: 20000
+[Step 45800] BlockTime: 4.73s
+[Step 45800] LastLoss: 0.000037
+[Step 45800] WeightDrift: 4.73004593004589e-06
+[Step 45800] ReviewP: 0.800, CacheSize: 20000
+[Step 46000] BlockTime: 4.70s
+[Step 46000] LastLoss: 0.006103
+[Step 46000] WeightDrift: 4.589498075802112e-06
+[Step 46000] ReviewP: 0.800, CacheSize: 20000
+[Step 46000] TestAcc: 94.72%
+[Step 46000] EvalTime: 145.35s
+[Step 46200] BlockTime: 4.81s
+[Step 46200] LastLoss: 0.000403
+[Step 46200] WeightDrift: 4.498124326346442e-06
+[Step 46200] ReviewP: 0.800, CacheSize: 20000
+[Step 46400] BlockTime: 4.59s
+[Step 46400] LastLoss: 0.125481
+[Step 46400] WeightDrift: 4.416584943101043e-06
+[Step 46400] ReviewP: 0.800, CacheSize: 20000
+[Step 46600] BlockTime: 4.65s
+[Step 46600] LastLoss: 0.000006
+[Step 46600] WeightDrift: 4.319250365369953e-06
+[Step 46600] ReviewP: 0.800, CacheSize: 20000
+[Step 46800] BlockTime: 4.79s
+[Step 46800] LastLoss: 0.001097
+[Step 46800] WeightDrift: 4.215896296955179e-06
+[Step 46800] ReviewP: 0.800, CacheSize: 20000
+[Step 47000] BlockTime: 4.51s
+[Step 47000] LastLoss: 0.000127
+[Step 47000] WeightDrift: 4.047334186907392e-06
+[Step 47000] ReviewP: 0.800, CacheSize: 20000
+[Step 47200] BlockTime: 5.06s
+[Step 47200] LastLoss: 0.269436
+[Step 47200] WeightDrift: 3.8712023524567485e-06
+[Step 47200] ReviewP: 0.800, CacheSize: 20000
+[Step 47400] BlockTime: 4.33s
+[Step 47400] LastLoss: 0.043249
+[Step 47400] WeightDrift: 3.786325351029518e-06
+[Step 47400] ReviewP: 0.800, CacheSize: 20000
+[Step 47600] BlockTime: 4.77s
+[Step 47600] LastLoss: 0.000002
+[Step 47600] WeightDrift: 3.6966800962545676e-06
+[Step 47600] ReviewP: 0.800, CacheSize: 20000
+[Step 47800] BlockTime: 4.57s
+[Step 47800] LastLoss: 0.000013
+[Step 47800] WeightDrift: 3.6094784263696056e-06
+[Step 47800] ReviewP: 0.800, CacheSize: 20000
+[Step 48000] BlockTime: 4.62s
+[Step 48000] LastLoss: 0.001759
+[Step 48000] WeightDrift: 3.579616532078944e-06
+[Step 48000] ReviewP: 0.800, CacheSize: 20000
+[Step 48000] TestAcc: 94.90%
+[Step 48000] EvalTime: 155.36s
+[Step 48200] BlockTime: 4.86s
+[Step 48200] LastLoss: 0.000911
+[Step 48200] WeightDrift: 3.4727454476524144e-06
+[Step 48200] ReviewP: 0.800, CacheSize: 20000
+[Step 48400] BlockTime: 4.72s
+[Step 48400] LastLoss: 3.516445
+[Step 48400] WeightDrift: 3.3190249268955085e-06
+[Step 48400] ReviewP: 0.800, CacheSize: 20000
+[Step 48600] BlockTime: 4.60s
+[Step 48600] LastLoss: 0.048597
+[Step 48600] WeightDrift: 3.1992792628443567e-06
+[Step 48600] ReviewP: 0.800, CacheSize: 20000
+[Step 48800] BlockTime: 4.53s
+[Step 48800] LastLoss: 0.000137
+[Step 48800] WeightDrift: 3.0945539037929848e-06
+[Step 48800] ReviewP: 0.800, CacheSize: 20000
+[Step 49000] BlockTime: 4.41s
+[Step 49000] LastLoss: 0.316084
+[Step 49000] WeightDrift: 2.9842854019079823e-06
+[Step 49000] ReviewP: 0.800, CacheSize: 20000
+[Step 49200] BlockTime: 4.45s
+[Step 49200] LastLoss: 0.010083
+[Step 49200] WeightDrift: 2.8654337711486733e-06
+[Step 49200] ReviewP: 0.800, CacheSize: 20000
+[Step 49400] BlockTime: 4.58s
+[Step 49400] LastLoss: 0.000000
+[Step 49400] WeightDrift: 2.7772784960689023e-06
+[Step 49400] ReviewP: 0.800, CacheSize: 20000
+[Step 49600] BlockTime: 4.55s
+[Step 49600] LastLoss: 0.000341
+[Step 49600] WeightDrift: 2.6839970814762637e-06
+[Step 49600] ReviewP: 0.800, CacheSize: 20000
+[Step 49800] BlockTime: 4.49s
+[Step 49800] LastLoss: 0.010628
+[Step 49800] WeightDrift: 2.6823281586985104e-06
+[Step 49800] ReviewP: 0.800, CacheSize: 20000
+[Step 50000] BlockTime: 4.59s
+[Step 50000] LastLoss: 0.000021
+[Step 50000] WeightDrift: 2.5843382900347933e-06
+[Step 50000] ReviewP: 0.800, CacheSize: 20000
+[Step 50000] TestAcc: 95.15%
+[Step 50000] EvalTime: 155.67s
+[NEW BEST] acc=95.15% at step=50000
+[Step 50200] BlockTime: 4.61s
+[Step 50200] LastLoss: 0.000020
+[Step 50200] WeightDrift: 2.549290684328298e-06
+[Step 50200] ReviewP: 0.800, CacheSize: 20000
+[Step 50400] BlockTime: 4.67s
+[Step 50400] LastLoss: 0.067682
+[Step 50400] WeightDrift: 2.480804823790095e-06
+[Step 50400] ReviewP: 0.800, CacheSize: 20000
+[Step 50600] BlockTime: 4.58s
+[Step 50600] LastLoss: 0.000034
+[Step 50600] WeightDrift: 2.4118423880281625e-06
+[Step 50600] ReviewP: 0.800, CacheSize: 20000
+[Step 50800] BlockTime: 4.58s
+[Step 50800] LastLoss: 0.000062
+[Step 50800] WeightDrift: 2.378940507696825e-06
+[Step 50800] ReviewP: 0.800, CacheSize: 20000
+[Step 51000] BlockTime: 4.60s
+[Step 51000] LastLoss: 2.248613
+[Step 51000] WeightDrift: 2.326309640920954e-06
+[Step 51000] ReviewP: 0.800, CacheSize: 20000
+[Step 51200] BlockTime: 4.66s
+[Step 51200] LastLoss: 0.000586
+[Step 51200] WeightDrift: 2.2521614937431877e-06
+[Step 51200] ReviewP: 0.800, CacheSize: 20000
+[Step 51400] BlockTime: 4.44s
+[Step 51400] LastLoss: 2.661354
+[Step 51400] WeightDrift: 2.1725893475377234e-06
+[Step 51400] ReviewP: 0.800, CacheSize: 20000
+[Step 51600] BlockTime: 4.89s
+[Step 51600] LastLoss: 0.000000
+[Step 51600] WeightDrift: 2.0548104657791555e-06
+[Step 51600] ReviewP: 0.800, CacheSize: 20000
+[Step 51800] BlockTime: 4.89s
+[Step 51800] LastLoss: 0.000002
+[Step 51800] WeightDrift: 1.9953847640863387e-06
+[Step 51800] ReviewP: 0.800, CacheSize: 20000
+[Step 52000] BlockTime: 4.59s
+[Step 52000] LastLoss: 0.000167
+[Step 52000] WeightDrift: 1.9373296709090937e-06
+[Step 52000] ReviewP: 0.800, CacheSize: 20000
+[Step 52000] TestAcc: 94.88%
+[Step 52000] EvalTime: 153.98s
+[Step 52200] BlockTime: 4.73s
+[Step 52200] LastLoss: 0.000580
+[Step 52200] WeightDrift: 1.9071102315137978e-06
+[Step 52200] ReviewP: 0.800, CacheSize: 20000
+[Step 52400] BlockTime: 4.64s
+[Step 52400] LastLoss: 0.000014
+[Step 52400] WeightDrift: 1.889348027361848e-06
+[Step 52400] ReviewP: 0.800, CacheSize: 20000
+[Step 52600] BlockTime: 4.70s
+[Step 52600] LastLoss: 7.773667
+[Step 52600] WeightDrift: 1.8420815877107088e-06
+[Step 52600] ReviewP: 0.800, CacheSize: 20000
+[Step 52800] BlockTime: 4.61s
+[Step 52800] LastLoss: 0.000000
+[Step 52800] WeightDrift: 1.812636810427648e-06
+[Step 52800] ReviewP: 0.800, CacheSize: 20000
+[Step 53000] BlockTime: 4.68s
+[Step 53000] LastLoss: 0.000001
+[Step 53000] WeightDrift: 1.7647147387833684e-06
+[Step 53000] ReviewP: 0.800, CacheSize: 20000
+[Step 53200] BlockTime: 4.84s
+[Step 53200] LastLoss: 0.000690
+[Step 53200] WeightDrift: 1.700043640084914e-06
+[Step 53200] ReviewP: 0.800, CacheSize: 20000
+[Step 53400] BlockTime: 4.61s
+[Step 53400] LastLoss: 0.000024
+[Step 53400] WeightDrift: 1.6494393548782682e-06
+[Step 53400] ReviewP: 0.800, CacheSize: 20000
+[Step 53600] BlockTime: 4.66s
+[Step 53600] LastLoss: 0.000000
+[Step 53600] WeightDrift: 1.5859008044571965e-06
+[Step 53600] ReviewP: 0.800, CacheSize: 20000
+[Step 53800] BlockTime: 4.80s
+[Step 53800] LastLoss: 0.000000
+[Step 53800] WeightDrift: 1.5283227412510314e-06
+[Step 53800] ReviewP: 0.800, CacheSize: 20000
+[Step 54000] BlockTime: 4.69s
+[Step 54000] LastLoss: 0.001816
+[Step 54000] WeightDrift: 1.4505386616292526e-06
+[Step 54000] ReviewP: 0.800, CacheSize: 20000
+[Step 54000] TestAcc: 95.04%
+[Step 54000] EvalTime: 150.12s
+[Step 54200] BlockTime: 4.83s
+[Step 54200] LastLoss: 0.002236
+[Step 54200] WeightDrift: 1.3867617099094787e-06
+[Step 54200] ReviewP: 0.800, CacheSize: 20000
+[Step 54400] BlockTime: 4.66s
+[Step 54400] LastLoss: 0.000005
+[Step 54400] WeightDrift: 1.3186335081627476e-06
+[Step 54400] ReviewP: 0.800, CacheSize: 20000
+[Step 54600] BlockTime: 4.56s
+[Step 54600] LastLoss: 0.000032
+[Step 54600] WeightDrift: 1.268208052351838e-06
+[Step 54600] ReviewP: 0.800, CacheSize: 20000
+[Step 54800] BlockTime: 4.55s
+[Step 54800] LastLoss: 0.000011
+[Step 54800] WeightDrift: 1.2226104217916145e-06
+[Step 54800] ReviewP: 0.800, CacheSize: 20000
+[Step 55000] BlockTime: 4.63s
+[Step 55000] LastLoss: 0.000009
+[Step 55000] WeightDrift: 1.1941790489800042e-06
+[Step 55000] ReviewP: 0.800, CacheSize: 20000
+[Step 55200] BlockTime: 4.59s
+[Step 55200] LastLoss: 0.001040
+[Step 55200] WeightDrift: 1.187682187264727e-06
+[Step 55200] ReviewP: 0.800, CacheSize: 20000
+[Step 55400] BlockTime: 4.52s
+[Step 55400] LastLoss: 0.005898
+[Step 55400] WeightDrift: 1.1637806665021344e-06
+[Step 55400] ReviewP: 0.800, CacheSize: 20000
+[Step 55600] BlockTime: 4.60s
+[Step 55600] LastLoss: 0.001680
+[Step 55600] WeightDrift: 1.1521577789608273e-06
+[Step 55600] ReviewP: 0.800, CacheSize: 20000
+[Step 55800] BlockTime: 4.47s
+[Step 55800] LastLoss: 0.000008
+[Step 55800] WeightDrift: 1.1195540992048336e-06
+[Step 55800] ReviewP: 0.800, CacheSize: 20000
+[Step 56000] BlockTime: 4.72s
+[Step 56000] LastLoss: 0.121766
+[Step 56000] WeightDrift: 1.0879040246436489e-06
+[Step 56000] ReviewP: 0.800, CacheSize: 20000
+[Step 56000] TestAcc: 94.93%
+[Step 56000] EvalTime: 152.14s
+[Step 56200] BlockTime: 4.72s
+[Step 56200] LastLoss: 0.000023
+[Step 56200] WeightDrift: 1.0555982044024859e-06
+[Step 56200] ReviewP: 0.800, CacheSize: 20000
+[Step 56400] BlockTime: 4.72s
+[Step 56400] LastLoss: 0.000000
+[Step 56400] WeightDrift: 1.0306239346391521e-06
+[Step 56400] ReviewP: 0.800, CacheSize: 20000
+[Step 56600] BlockTime: 4.78s
+[Step 56600] LastLoss: 0.002076
+[Step 56600] WeightDrift: 9.769797770786681e-07
+[Step 56600] ReviewP: 0.800, CacheSize: 20000
+[Step 56800] BlockTime: 4.89s
+[Step 56800] LastLoss: 0.000026
+[Step 56800] WeightDrift: 9.452700737710984e-07
+[Step 56800] ReviewP: 0.800, CacheSize: 20000
+[Step 57000] BlockTime: 4.78s
+[Step 57000] LastLoss: 0.000504
+[Step 57000] WeightDrift: 9.157061526821053e-07
+[Step 57000] ReviewP: 0.800, CacheSize: 20000
+[Step 57200] BlockTime: 4.78s
+[Step 57200] LastLoss: 0.003815
+[Step 57200] WeightDrift: 8.863806897352333e-07
+[Step 57200] ReviewP: 0.800, CacheSize: 20000
+[Step 57400] BlockTime: 4.62s
+[Step 57400] LastLoss: 0.000000
+[Step 57400] WeightDrift: 8.749365747462434e-07
+[Step 57400] ReviewP: 0.800, CacheSize: 20000
+[Step 57600] BlockTime: 4.75s
+[Step 57600] LastLoss: 0.000000
+[Step 57600] WeightDrift: 8.422136374974798e-07
+[Step 57600] ReviewP: 0.800, CacheSize: 20000
+[Step 57800] BlockTime: 4.69s
+[Step 57800] LastLoss: 0.000000
+[Step 57800] WeightDrift: 8.085369813670695e-07
+[Step 57800] ReviewP: 0.800, CacheSize: 20000
+[Step 58000] BlockTime: 5.19s
+[Step 58000] LastLoss: 0.760291
+[Step 58000] WeightDrift: 7.799864079061081e-07
+[Step 58000] ReviewP: 0.800, CacheSize: 20000
+[Step 58000] TestAcc: 95.03%
+[Step 58000] EvalTime: 152.12s
+[Step 58200] BlockTime: 4.59s
+[Step 58200] LastLoss: 0.000000
+[Step 58200] WeightDrift: 7.306337579393585e-07
+[Step 58200] ReviewP: 0.800, CacheSize: 20000
+[Step 58400] BlockTime: 4.66s
+[Step 58400] LastLoss: 0.000000
+[Step 58400] WeightDrift: 7.19726074294158e-07
+[Step 58400] ReviewP: 0.800, CacheSize: 20000
+[Step 58600] BlockTime: 4.52s
+[Step 58600] LastLoss: 0.001207
+[Step 58600] WeightDrift: 6.983279945416143e-07
+[Step 58600] ReviewP: 0.800, CacheSize: 20000
+[Step 58800] BlockTime: 4.61s
+[Step 58800] LastLoss: 0.003156
+[Step 58800] WeightDrift: 6.790756970076472e-07
+[Step 58800] ReviewP: 0.800, CacheSize: 20000
+[Step 59000] BlockTime: 4.79s
+[Step 59000] LastLoss: 0.000088
+[Step 59000] WeightDrift: 6.492733746199519e-07
+[Step 59000] ReviewP: 0.800, CacheSize: 20000
+[Step 59200] BlockTime: 4.88s
+[Step 59200] LastLoss: 4.467110
+[Step 59200] WeightDrift: 6.377101158250298e-07
+[Step 59200] ReviewP: 0.800, CacheSize: 20000
+[Step 59400] BlockTime: 4.50s
+[Step 59400] LastLoss: 0.000351
+[Step 59400] WeightDrift: 6.083250241317728e-07
+[Step 59400] ReviewP: 0.800, CacheSize: 20000
+[Step 59600] BlockTime: 4.68s
+[Step 59600] LastLoss: 0.004012
+[Step 59600] WeightDrift: 5.607008688457427e-07
+[Step 59600] ReviewP: 0.800, CacheSize: 20000
+[Step 59800] BlockTime: 4.60s
+[Step 59800] LastLoss: 0.000130
+[Step 59800] WeightDrift: 5.438327548290545e-07
+[Step 59800] ReviewP: 0.800, CacheSize: 20000
+[FINAL] step=60000, acc=94.88%
+[BEST] acc=95.15% at step=50000; path=/Users/aishanipatil/Documents/GitHub/DC_Net_Hebbian_Model/RESULT/single_layer_full_baseline/2026-09-10_17-31-42/best_step_50000.pth
