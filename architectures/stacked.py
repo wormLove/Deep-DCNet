@@ -33,12 +33,11 @@ single-layer model):
     is a drop-in swap here too - the stacked model isn't limited to the
     plain linear ReadoutHead.
 
-Caveat (same honesty note as everywhere else in this codebase so far):
-this class has been syntax-checked and logic-reviewed against the real
-DiscriminationLayer/ActivationCache/WeightDriftMonitor APIs, but has NOT
-been run end-to-end with real torch (this sandbox can't load the CUDA
-libs). Run a quick smoke test on your machine before trusting numbers
-out of it.
+Verification status: smoke-tested end to end with real torch on CPU
+(experiments/2026-09-17_stacked_2layer_baseline.py --smoke): the stability
+cascade (L0 stable -> L1 starts organizing -> L1 stable), per-layer review
+ramp-up, eval, RESULT logging and save_stack/load_stack all run. It has NOT
+yet been run at full scale, so there is no real accuracy number for it yet.
 """
 from typing import Any, Dict, List, Optional
 
@@ -130,6 +129,20 @@ class StackedBiologicalClassifier(nn.Module):
     def num_dl_layers(self) -> int:
         return len(self.discrimination_layers)
 
+    def is_learning(self, layer_idx: int) -> bool:
+        """
+        True if DL layer `layer_idx` is currently allowed to learn: layer 0
+        always is; layer i > 0 only once layer i-1 is stable. This one rule
+        gates BOTH organize() and the per-batch accumulation of Hebbian
+        potentials / activity stats in forward() - a gated-off layer must
+        not collect statistics on upstream features that are still moving
+        (otherwise its first organize() counts all of that stale activity
+        as "memory strength" and drops its learning rates before it has
+        learned anything, and its activity cache grows without bound since
+        it is only flushed inside organize()).
+        """
+        return layer_idx == 0 or self.is_stable(layer_idx - 1)
+
     def is_stable(self, layer_idx: int = -1) -> bool:
         """True if DL layer `layer_idx` is currently stable (default: the
         last layer, i.e. 'is the representation feeding the head stable')."""
@@ -146,7 +159,7 @@ class StackedBiologicalClassifier(nn.Module):
         design, so a downstream layer doesn't chase a moving target.
         """
         for i, dl in enumerate(self.discrimination_layers):
-            if i > 0 and not self.is_stable(i - 1):
+            if not self.is_learning(i):
                 continue
 
             dl.organize(unit_norm=unit_norm)
@@ -219,7 +232,7 @@ class StackedBiologicalClassifier(nn.Module):
         x = self.transform(x)
         with torch.no_grad():
             for i, dl in enumerate(self.discrimination_layers):
-                x = dl(x)
+                x = dl(x, accumulate=self.is_learning(i))
                 if record_cache and self._review_enabled and y is not None and self.is_stable(i):
                     self.activation_caches[i].add(x.detach(), y.detach())
         return self.readout_head(x)
@@ -233,7 +246,10 @@ class StackedBiologicalClassifier(nn.Module):
         x = cached_acts
         with torch.no_grad():
             for i in range(layer_idx + 1, self.num_dl_layers):
-                x = self.discrimination_layers[i](x)
+                # accumulate=False: review replays OLD cached samples to
+                # train the head only - they must not be counted a second
+                # time in downstream layers' Hebbian potentials / stats.
+                x = self.discrimination_layers[i](x, accumulate=False)
         return self.readout_head(x)
 
     # ------------------------------------------------------------------

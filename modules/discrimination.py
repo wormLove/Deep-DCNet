@@ -135,7 +135,16 @@ class DiscriminationLayer(nn.Module):
             weights = self.neuron_weights.detach()
             return torch.matmul(weights.transpose(0, 1), weights)
 
-    def forward(self, x: torch.Tensor, return_intermediate: bool = False):
+    def forward(self, x: torch.Tensor, return_intermediate: bool = False, accumulate: bool = True):
+        """
+        accumulate: when False, skip the Hebbian/anti-Hebbian potential
+        update and the neuron-activity stats cache even in training mode -
+        a pure feature-extraction pass. Defaults to True, so existing
+        single-layer behavior is unchanged. Used by
+        architectures/stacked.py for (a) layers that are currently gated
+        off waiting for their upstream layer to stabilize, and (b) review
+        replay through downstream layers.
+        """
         if x.dim() != 2 or x.shape[1] != self.in_dim:
             raise ValueError(f"input must be [batch, {self.in_dim}]")
 
@@ -145,7 +154,7 @@ class DiscriminationLayer(nn.Module):
         act_opt = self.activity_optimizer(act_raw, corr)
         act = self.activation(act_opt)
 
-        if self.training:
+        if self.training and accumulate:
             self.organizer.step(x, act)
             self.stats.cache_activity(act)
 

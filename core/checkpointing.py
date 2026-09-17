@@ -61,6 +61,12 @@ def _manifest_path(checkpoints_dir: str) -> str:
     return os.path.join(checkpoints_dir, "manifest.json")
 
 
+def _resolve_weights_path(checkpoints_dir: str, entry: dict) -> str:
+    # basename() also makes older manifest entries that stored an absolute
+    # path keep working after the repo is moved/cloned elsewhere.
+    return os.path.join(checkpoints_dir, os.path.basename(entry["path"]))
+
+
 def _load_manifest(checkpoints_dir: str) -> dict:
     path = _manifest_path(checkpoints_dir)
     if os.path.exists(path):
@@ -116,7 +122,9 @@ def save_layer(
     entry = dict(meta or {})
     entry.update({
         "name": name,
-        "path": weights_path,
+        # filename only, relative to checkpoints_dir - an absolute path would
+        # break as soon as the checkpoint moves machines (HPC -> laptop).
+        "path": os.path.basename(weights_path),
         "in_dim": dl.in_dim,
         "out_dim": dl.out_dim,
         "saved_at": datetime.now().strftime("%Y-%m-%d_%H-%M-%S"),
@@ -147,7 +155,7 @@ def load_layer(
             f"Available: {sorted(manifest)}"
         )
     entry = manifest[name]
-    payload = torch.load(entry["path"], weights_only=False)
+    payload = torch.load(_resolve_weights_path(checkpoints_dir, entry), weights_only=False)
 
     module = DiscriminationLayer(
         in_dim=payload["in_dim"],
@@ -220,7 +228,9 @@ def save_stack(
     entry.update({
         "kind": "stack",
         "name": name,
-        "path": weights_path,
+        # filename only, relative to checkpoints_dir - an absolute path would
+        # break as soon as the checkpoint moves machines (HPC -> laptop).
+        "path": os.path.basename(weights_path),
         "layer_dims": list(classifier.layer_dims),
         "num_dl_layers": len(dls),
         "saved_at": datetime.now().strftime("%Y-%m-%d_%H-%M-%S"),
@@ -256,7 +266,7 @@ def load_stack(
             f"Checkpoint '{name}' is not a stack checkpoint (kind={entry.get('kind', 'layer')!r}). "
             "Use load_layer() for single-layer checkpoints."
         )
-    payload = torch.load(entry["path"], weights_only=False)
+    payload = torch.load(_resolve_weights_path(checkpoints_dir, entry), weights_only=False)
 
     layer_dims = payload["layer_dims"]
     config = payload.get("discrimination_config") or {}
