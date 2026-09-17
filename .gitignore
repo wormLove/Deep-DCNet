@@ -27,3 +27,11 @@ gpu_rebuild_classifier/
 !/docs/prior_experiments/dc_net_hebbian_model/RESULT/
 !/docs/prior_experiments/dc_net_hebbian_model/RESULT/**
 !/docs/prior_experiments/dc_net_hebbian_model/checkpoints/*.pt
+
+# Top-level checkpoints/ (core/checkpointing.py's save_layer/load_layer) holds
+# small, intentional, named reusable-layer checkpoints - not per-run junk.
+# Un-ignore it here since the blanket *.pt rule above would otherwise also
+# match inside it.
+!/checkpoints/
+!/checkpoints/*.pt
+!/checkpoints/manifest.json

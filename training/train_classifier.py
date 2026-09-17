@@ -16,6 +16,7 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from analysis.analysis_engine import AnalysisEngine
+from core.checkpointing import save_layer
 from core.initializers import DatasetInitializerWhole
 from models.biological_classifier import BiologicalClassifier
 from models.classifier_heads import TraditionalMLPHead
@@ -92,6 +93,7 @@ def run_classifier_train(
     device: torch.device,
     data_root: Path,
     result_root: Path,
+    run_name: str = "gpu_rebuild_classifier",
     num_train_samples: int = 1000,
     num_test_samples: int = 1000,
     batch_size: int = 4,
@@ -117,7 +119,21 @@ def run_classifier_train(
     head: str = "readout",
     head_hidden_dims: Tuple[int, ...] = (256,),
     head_dropout: float = 0.2,
-) -> None:
+    checkpoint_name: Optional[str] = None,
+    checkpoints_dir: Optional[Path] = None,
+) -> float:
+    """
+    Runs one classifier training experiment. `run_name` names its
+    RESULT/<run_name>/<timestamp>/ folder (distinct experiments should use
+    distinct run_names - see experiments/ for named, dated wrapper scripts
+    that fix a run_name and config for a specific comparison). If
+    `checkpoint_name` is given, the trained discrimination layer is saved
+    as a reusable, named checkpoint via core.checkpointing.save_layer once
+    training finishes, so a later experiment can reuse these exact learned
+    features as a frozen extractor without retraining.
+
+    Returns the final test accuracy (%).
+    """
     train_dataset = MNIST(root=str(data_root), train=True, transform=transforms.ToTensor(), download=True)
     test_dataset = MNIST(root=str(data_root), train=False, transform=transforms.ToTensor(), download=True)
 
@@ -191,7 +207,7 @@ def run_classifier_train(
         trainable_params += list(model.integration_layer.parameters())
     optimizer = optim.Adam(trainable_params, lr=1e-3)
 
-    analysis = AnalysisEngine(base_dir=result_root, run_name="gpu_rebuild_classifier") if enable_analysis else None
+    analysis = AnalysisEngine(base_dir=result_root, run_name=run_name) if enable_analysis else None
     eval_log_path = build_eval_log_path(result_root, analysis) if save_eval_log else None
     train_log_path = build_train_log_path(result_root, analysis) if save_train_log else None
 
@@ -208,6 +224,7 @@ def run_classifier_train(
             f.write(message + "\n")
 
     setup_lines = [
+        f"[run_name] {run_name}",
         f"[device] {device}",
         f"[train_subset] {num_train_samples}",
         f"[test_subset] {num_test_samples}",
@@ -245,6 +262,8 @@ def run_classifier_train(
         setup_lines.append(f"[eval_log] {eval_log_path}")
     if train_log_path is not None:
         setup_lines.append(f"[train_log] {train_log_path}")
+    if checkpoint_name is not None:
+        setup_lines.append(f"[checkpoint_name] {checkpoint_name}")
     for line in setup_lines:
         train_logger(line)
 
@@ -273,7 +292,28 @@ def run_classifier_train(
     if training_mode == "review":
         engine_kwargs["review_per_sample_max"] = review_per_sample_max
         engine_kwargs["review_error_repeat"] = review_error_repeat
-    engine(**engine_kwargs)
+    final_acc = engine(**engine_kwargs)
+
+    if checkpoint_name is not None:
+        ckpt_dir = str(checkpoints_dir) if checkpoints_dir is not None else str(Path(BASE_DIR) / "checkpoints")
+        path = save_layer(
+            model,
+            name=checkpoint_name,
+            checkpoints_dir=ckpt_dir,
+            meta={
+                "run_name": run_name,
+                "head": head,
+                "final_acc": final_acc,
+                "source": "training/train_classifier.py",
+            },
+            overwrite=True,
+        )
+        msg = f"[checkpoint] saved reusable discrimination-layer checkpoint '{checkpoint_name}' -> {path}"
+        if not quiet_train:
+            print(msg)
+        train_logger(msg)
+
+    return final_acc
 
 
 def parse_args():
@@ -281,6 +321,10 @@ def parse_args():
     parser.add_argument("--device", type=str, default="auto", choices=["auto", "cpu", "cuda", "mps"])
     parser.add_argument("--data-root", type=str, default=str(Path(BASE_DIR) / "DATA"))
     parser.add_argument("--result-root", type=str, default=str(Path(BASE_DIR) / "RESULT"))
+    parser.add_argument("--run-name", type=str, default="gpu_rebuild_classifier",
+                         help="Names this run's RESULT/<run-name>/<timestamp>/ folder. "
+                              "Use a distinct name per experiment (e.g. 'point5_traditional_head') "
+                              "so different experiments' logs don't mix together.")
     parser.add_argument("--num-train-samples", type=int, default=1000)
     parser.add_argument("--num-test-samples", type=int, default=1000)
     parser.add_argument("--batch-size", type=int, default=4)
@@ -336,6 +380,15 @@ def parse_args():
         default=0.2,
         help="Dropout for --head traditional_mlp (ignored for --head readout).",
     )
+    parser.add_argument(
+        "--checkpoint-name",
+        type=str,
+        default=None,
+        help="If given, save the trained discrimination layer as a reusable, named checkpoint "
+             "(checkpoints/<name>.pt + checkpoints/manifest.json) once training finishes, so a "
+             "later experiment can load it as a frozen feature extractor via "
+             "core.checkpointing.load_layer() without retraining.",
+    )
     return parser.parse_args()
 
 
@@ -346,6 +399,7 @@ if __name__ == "__main__":
         device=device,
         data_root=Path(args.data_root),
         result_root=Path(args.result_root),
+        run_name=args.run_name,
         num_train_samples=args.num_train_samples,
         num_test_samples=args.num_test_samples,
         batch_size=args.batch_size,
@@ -371,4 +425,5 @@ if __name__ == "__main__":
         head=args.head,
         head_hidden_dims=(args.head_hidden_dim,),
         head_dropout=args.head_dropout,
+        checkpoint_name=args.checkpoint_name,
     )
