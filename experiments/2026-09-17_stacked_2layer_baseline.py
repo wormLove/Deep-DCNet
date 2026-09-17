@@ -16,33 +16,50 @@ single-layer baseline's hidden width, for a fair same-repo comparison)
 with the review mechanism enabled (review_pmax=0.8), since the original
 stacked baseline's ~92% result relied on review - organize-only training
 is expected to underperform substantially, same as it would single-layer.
+
+Run size comes from experiments/_configs.py (default FULL: 60k/10k, batch
+32, organize every 1000 samples - same as the single-layer baseline so the
+two are directly comparable). Depth needs the long run: layer 1 only starts
+learning after layer 0 has been stable for a few organize cycles.
+
+    python experiments/2026-09-17_stacked_2layer_baseline.py            # full run (GPU/HPC)
+    python experiments/2026-09-17_stacked_2layer_baseline.py --smoke    # code-path check only
 """
 import os
 import sys
+from pathlib import Path
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from pathlib import Path
+import torch
 
+from _configs import parse_args, run_size
 from training.train_classifier import select_device
 from training.train_classifier_stacked import run_classifier_train_stacked
 
-if __name__ == "__main__":
-    BASE_DIR = Path(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-    device = select_device("auto")
-    run_classifier_train_stacked(
+BASE_DIR = Path(__file__).resolve().parent.parent
+CHECKPOINT_NAME = "stacked_2layer_h2000_readout"
+
+
+def main():
+    args = parse_args("Stacked 2-layer DCNet baseline (review mode, linear readout head).")
+    size, run_suffix, ckpt_suffix = run_size(args)
+    torch.manual_seed(args.seed)
+    device = select_device(args.device)
+    final_acc = run_classifier_train_stacked(
         device=device,
         data_root=BASE_DIR / "DATA",
         result_root=BASE_DIR / "RESULT",
-        run_name="stacked_2layer_baseline",
+        run_name="stacked_2layer_baseline" + run_suffix,
         layer_dims=(784, 2000, 2000, 10),
-        num_train_samples=1000,
-        num_test_samples=1000,
-        batch_size=4,
-        organize_interval_samples=200,
-        eval_interval_samples=200,
         training_mode="review",
         review_pmax=0.8,
         head="readout",
-        checkpoint_name="stacked_2layer_h2000_readout",
+        checkpoint_name=CHECKPOINT_NAME + ckpt_suffix,
+        **size,
     )
+    print(f"\n[stacked_2layer_baseline{run_suffix}] final acc={final_acc:.2f}%")
+
+
+if __name__ == "__main__":
+    main()

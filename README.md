@@ -91,7 +91,7 @@ The current training scripts use `torchvision.datasets.MNIST`.
 - `core/`: learning rules, memory protection, initialization, and monitoring
 - `training/`: training engines and runnable entry scripts
 - `analysis/`: analysis and visualization helpers
-- `experiments/`: reserved for experiment-specific scripts
+- `experiments/`: named, dated experiment scripts (`<date>_<name>.py`). Each runs the full-scale config by default and takes `--smoke` for a minutes-long CPU code-path check; run sizes live in `experiments/_configs.py`
 - `configs/`: reserved for configuration files
 - `docs/`: reserved for project documents
 - `DATA/`: local dataset root used by the training scripts
