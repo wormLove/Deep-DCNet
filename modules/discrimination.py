@@ -8,8 +8,8 @@ from core.initializers import RandomInitializer
 from core.lr_policy import ProtectWithRecoveryLR
 from core.organizer import DiscriminationOrganizer
 from core.stats import NeuronStateTracker
-from models.activation import LayerThresholding
-from models.optimizer import IterativeActivityOptimizer
+from modules.activation import LayerThresholding
+from modules.optimizer import IterativeActivityOptimizer
 
 
 class DiscriminationLayer(nn.Module):

@@ -5,9 +5,9 @@ from torch import nn
 
 from core.activation_cache import ActivationCache
 from core.weight_monitor import WeightDriftMonitor
-from models.discrimination import DiscriminationLayer
-from models.integration import IntegrationLayer
-from models.readout import ReadoutHead
+from modules.discrimination import DiscriminationLayer
+from modules.integration import IntegrationLayer
+from modules.readout import ReadoutHead
 
 
 class BiologicalClassifier(nn.Module):
@@ -63,7 +63,7 @@ class BiologicalClassifier(nn.Module):
         # When absent:  layer1 → head  (original behaviour)
         #
         # head_cls/head_kwargs let the readout be swapped for a different
-        # classifier head - e.g. models.classifier_heads.TraditionalMLPHead -
+        # classifier head - e.g. modules.classifier_heads.TraditionalMLPHead -
         # for comparison experiments (Prof. Yu's point #5). Any head_cls must
         # accept (in_dim, out_dim, **kwargs) and implement forward(x) ->
         # logits, matching ReadoutHead's interface. Defaults to ReadoutHead,

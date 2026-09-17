@@ -14,7 +14,7 @@ if str(PROJECT_ROOT) not in sys.path:
 
 from analysis.analysis_engine import AnalysisEngine
 from core.initializers import DatasetInitializerWhole
-from models.biological_classifier import BiologicalClassifier
+from architectures.single_layer import BiologicalClassifier
 
 BASE_DIR = str(PROJECT_ROOT)
 

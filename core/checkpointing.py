@@ -45,7 +45,7 @@ from typing import Optional
 
 import torch
 
-from models.discrimination import DiscriminationLayer
+from modules.discrimination import DiscriminationLayer
 
 
 def _git_commit(repo_dir: str = ".") -> str:
@@ -172,3 +172,102 @@ def load_layer(
 def list_checkpoints(checkpoints_dir: str = "checkpoints") -> dict:
     """Return the manifest dict (name -> metadata) for quick inspection."""
     return _load_manifest(checkpoints_dir)
+
+
+def save_stack(
+    classifier,
+    name: str,
+    checkpoints_dir: str = "checkpoints",
+    meta: Optional[dict] = None,
+    overwrite: bool = False,
+) -> str:
+    """
+    Multi-layer counterpart to save_layer(), for a
+    architectures.stacked.StackedBiologicalClassifier. Saves ALL of its
+    discrimination_layers (in order) plus layer_dims and the shared
+    discrimination_config as one named checkpoint bundle, so a stacked
+    model can be reused as a frozen multi-layer feature extractor without
+    retraining, same motivation as save_layer() for the single-layer case.
+
+    Stored in the same checkpoints/manifest.json as single-layer
+    checkpoints, tagged "kind": "stack" so load_stack()/load_layer() can
+    each reject a name that was saved by the other one instead of silently
+    misconstructing a model.
+
+    Raises if `name` already exists and overwrite=False.
+    """
+    os.makedirs(checkpoints_dir, exist_ok=True)
+    weights_path = os.path.join(checkpoints_dir, f"{name}.pt")
+
+    manifest = _load_manifest(checkpoints_dir)
+    if name in manifest and not overwrite:
+        raise FileExistsError(
+            f"Checkpoint '{name}' already exists in {checkpoints_dir}/manifest.json. "
+            "Pass overwrite=True if you really mean to replace it (this will break "
+            "any experiment that loads it expecting the old weights)."
+        )
+
+    dls = classifier.discrimination_layers
+    payload = {
+        "kind": "stack",
+        "layer_dims": list(classifier.layer_dims),
+        "state_dicts": [dl.state_dict() for dl in dls],
+        "discrimination_config": getattr(classifier, "discrimination_config", {}) or {},
+    }
+    torch.save(payload, weights_path)
+
+    entry = dict(meta or {})
+    entry.update({
+        "kind": "stack",
+        "name": name,
+        "path": weights_path,
+        "layer_dims": list(classifier.layer_dims),
+        "num_dl_layers": len(dls),
+        "saved_at": datetime.now().strftime("%Y-%m-%d_%H-%M-%S"),
+        "git_commit": _git_commit(),
+    })
+    manifest[name] = entry
+    _write_manifest(checkpoints_dir, manifest)
+
+    return weights_path
+
+
+def load_stack(
+    name: str,
+    checkpoints_dir: str = "checkpoints",
+    freeze: bool = True,
+):
+    """
+    Reconstruct the ordered list of frozen DiscriminationLayers from a
+    checkpoint saved by save_stack(), ready to assign to a
+    StackedBiologicalClassifier.discrimination_layers (wrap in
+    nn.ModuleList(...)). Raises if `name` refers to a single-layer
+    checkpoint saved by save_layer() instead - use load_layer() for those.
+    """
+    manifest = _load_manifest(checkpoints_dir)
+    if name not in manifest:
+        raise KeyError(
+            f"No checkpoint named '{name}' in {checkpoints_dir}/manifest.json. "
+            f"Available: {sorted(manifest)}"
+        )
+    entry = manifest[name]
+    if entry.get("kind") != "stack":
+        raise ValueError(
+            f"Checkpoint '{name}' is not a stack checkpoint (kind={entry.get('kind', 'layer')!r}). "
+            "Use load_layer() for single-layer checkpoints."
+        )
+    payload = torch.load(entry["path"], weights_only=False)
+
+    layer_dims = payload["layer_dims"]
+    config = payload.get("discrimination_config") or {}
+    layers = []
+    for i, sd in enumerate(payload["state_dicts"]):
+        in_d, out_d = layer_dims[i], layer_dims[i + 1]
+        module = DiscriminationLayer(in_dim=in_d, out_dim=out_d, **config)
+        module.load_state_dict(sd)
+        module.activity_optimizer.update_cached_gain(module.neuron_correlation_matrix)
+        if freeze:
+            for p in module.parameters():
+                p.requires_grad = False
+        layers.append(module)
+    return layers

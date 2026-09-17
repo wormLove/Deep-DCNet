@@ -1,7 +1,7 @@
 """
 Swappable classifier heads for BiologicalClassifier.
 
-Both classes below are drop-in replacements for models/readout.py's
+Both classes below are drop-in replacements for modules/readout.py's
 ReadoutHead: same interface (__init__(in_dim, out_dim, **kwargs),
 forward(x) -> logits), so BiologicalClassifier's head_cls/head_kwargs
 params can swap between them without touching the discrimination layer

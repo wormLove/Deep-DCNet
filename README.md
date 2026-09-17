@@ -86,7 +86,8 @@ The current training scripts use `torchvision.datasets.MNIST`.
 
 ## Folder Layout
 
-- `models/`: high-level model components
+- `architectures/`: full classifier architectures assembled from `modules/` (`single_layer.py`, `stacked.py`, `registry.py`)
+- `modules/`: layer-level components (discrimination layer, readout/classifier heads, integration layer)
 - `core/`: learning rules, memory protection, initialization, and monitoring
 - `training/`: training engines and runnable entry scripts
 - `analysis/`: analysis and visualization helpers
@@ -124,6 +125,20 @@ Discrimination-only run:
 
 ```bash
 python training/train_discrimination.py --device cuda
+```
+
+### Stacked (Multi-layer) Classifier Training
+
+Multi-layer stack (2 discrimination layers by default), with review:
+
+```bash
+python training/train_classifier_stacked.py --device cuda --training-mode review
+```
+
+Custom layer sizes:
+
+```bash
+python training/train_classifier_stacked.py --layer-dims 784,2000,2000,2000,10
 ```
 
 ### Common Options
