@@ -19,3 +19,11 @@ analysis_outputs/
 My_Notes_Aishani
 Claude outputs/
 gpu_rebuild_classifier/
+
+# docs/prior_experiments/dc_net_hebbian_model/ keeps its own tracked RESULT
+# logs + checkpoints (small, intentional - see its README.md). Un-ignore
+# them here since the blanket RESULT/ and *.pt rules above would otherwise
+# also match inside it.
+!/docs/prior_experiments/dc_net_hebbian_model/RESULT/
+!/docs/prior_experiments/dc_net_hebbian_model/RESULT/**
+!/docs/prior_experiments/dc_net_hebbian_model/checkpoints/*.pt
