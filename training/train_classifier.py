@@ -1,7 +1,7 @@
 import argparse
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Tuple
 import sys
 
 import torch
@@ -18,9 +18,13 @@ if str(PROJECT_ROOT) not in sys.path:
 from analysis.analysis_engine import AnalysisEngine
 from core.initializers import DatasetInitializerWhole
 from models.biological_classifier import BiologicalClassifier
+from models.classifier_heads import TraditionalMLPHead
+from models.readout import ReadoutHead
 from training.training_engines import evaluate_classifier, train_classifier_plain, train_classifier_with_review
 
 BASE_DIR = str(PROJECT_ROOT)
+
+HEAD_CHOICES = ("readout", "traditional_mlp")
 
 
 def select_device(device_arg: str) -> torch.device:
@@ -35,6 +39,21 @@ def select_device(device_arg: str) -> torch.device:
 
 def flatten_to_vector(x: torch.Tensor) -> torch.Tensor:
     return x.view(x.shape[0], -1)
+
+
+def resolve_head(head: str, head_hidden_dims: Tuple[int, ...], head_dropout: float):
+    """
+    Resolve a --head CLI choice into (head_cls, head_kwargs) for
+    BiologicalClassifier. 'readout' is the original single linear layer
+    (unchanged default behavior); 'traditional_mlp' is Prof. Yu's point #5
+    comparison baseline - a conventional Linear->ReLU->Dropout->Linear head,
+    trained the same way (ordinary backprop) but with more capacity, to see
+    whether it reads out the same frozen discrimination-layer features
+    better than the single linear layer does.
+    """
+    if head == "traditional_mlp":
+        return TraditionalMLPHead, {"hidden_dims": tuple(head_hidden_dims), "dropout": head_dropout}
+    return ReadoutHead, {}
 
 
 @torch.no_grad()
@@ -95,6 +114,9 @@ def run_classifier_train(
     save_train_log: bool = True,
     integration_dim: Optional[int] = None,
     integration_activation: str = "relu",
+    head: str = "readout",
+    head_hidden_dims: Tuple[int, ...] = (256,),
+    head_dropout: float = 0.2,
 ) -> None:
     train_dataset = MNIST(root=str(data_root), train=True, transform=transforms.ToTensor(), download=True)
     test_dataset = MNIST(root=str(data_root), train=False, transform=transforms.ToTensor(), download=True)
@@ -115,6 +137,8 @@ def run_classifier_train(
             non_negative=True,
         )
 
+    head_cls, head_kwargs = resolve_head(head, head_hidden_dims, head_dropout)
+
     model = BiologicalClassifier(
         input_dim=784,
         hidden_dim=2000,
@@ -123,6 +147,8 @@ def run_classifier_train(
         transform=flatten_to_vector,
         integration_dim=integration_dim,
         integration_activation=integration_activation,
+        head_cls=head_cls,
+        head_kwargs=head_kwargs,
         discrimination_config={
             "non_negative": True,
             "beta": 199 / 200,
@@ -190,7 +216,11 @@ def run_classifier_train(
         f"[eval_interval_samples] {eval_interval_samples}",
         f"[training_mode] {training_mode}",
         f"[init_mode] {init_mode}",
+        f"[head] {head}",
     ]
+    if head == "traditional_mlp":
+        setup_lines.append(f"[head_hidden_dims] {tuple(head_hidden_dims)}")
+        setup_lines.append(f"[head_dropout] {head_dropout}")
     if integration_dim is not None:
         setup_lines.append(f"[integration_dim] {integration_dim}")
         setup_lines.append(f"[integration_activation] {integration_activation}")
@@ -285,6 +315,27 @@ def parse_args():
         choices=["relu", "tanh", "gelu"],
         help="Activation function for the integration layer (default: relu).",
     )
+    parser.add_argument(
+        "--head",
+        type=str,
+        default="readout",
+        choices=list(HEAD_CHOICES),
+        help="Classifier head: 'readout' (single linear layer, default) or 'traditional_mlp' "
+             "(Linear->ReLU->Dropout->Linear, Prof. Yu's point #5 comparison baseline against "
+             "the biologically-motivated linear readout).",
+    )
+    parser.add_argument(
+        "--head-hidden-dim",
+        type=int,
+        default=256,
+        help="Hidden layer size for --head traditional_mlp (ignored for --head readout).",
+    )
+    parser.add_argument(
+        "--head-dropout",
+        type=float,
+        default=0.2,
+        help="Dropout for --head traditional_mlp (ignored for --head readout).",
+    )
     return parser.parse_args()
 
 
@@ -317,4 +368,7 @@ if __name__ == "__main__":
         save_train_log=not args.disable_train_log,
         integration_dim=args.integration_dim,
         integration_activation=args.integration_activation,
+        head=args.head,
+        head_hidden_dims=(args.head_hidden_dim,),
+        head_dropout=args.head_dropout,
     )
