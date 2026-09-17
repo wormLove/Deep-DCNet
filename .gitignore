@@ -19,11 +19,3 @@ analysis_outputs/
 My_Notes_Aishani
 Claude outputs/
 gpu_rebuild_classifier/
-
-# DC_Net_Hebbian_Model is brought in as a self-contained subfolder and keeps
-# its own tracked RESULT logs + named reusable checkpoints (small, intentional -
-# see DC_Net_Hebbian_Model/checkpoints/README.md). Un-ignore them here since the
-# blanket RESULT/ and *.pt rules above would otherwise also match inside it.
-!/DC_Net_Hebbian_Model/RESULT/
-!/DC_Net_Hebbian_Model/RESULT/**
-!/DC_Net_Hebbian_Model/checkpoints/*.pt
