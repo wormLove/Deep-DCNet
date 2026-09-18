@@ -4,7 +4,8 @@ Shared run-size configs for the dated experiment scripts in this folder.
 FULL mirrors the one real full-scale run that exists for this codebase so
 far (RESULT/gpu_rebuild_classifier/2026-05-25_00-37-27 on the HPC: full
 MNIST, batch 32, organize every 1000 samples, eval every 5000), so numbers
-from these scripts are comparable with it and with each other.
+from these scripts are comparable with it and with each other. It is
+dataset-agnostic: "full split" rather than a fixed sample count.
 
 SMOKE is a minutes-on-a-laptop-CPU run whose only job is to exercise every
 code path (train, organize, stability gating, review, eval, RESULT logging,
@@ -16,8 +17,8 @@ Every script takes:   python experiments/<script>.py            # FULL
 import argparse
 
 FULL = dict(
-    num_train_samples=60000,
-    num_test_samples=10000,
+    num_train_samples=None,   # None = the whole training split (60k MNIST/Fashion, 50k CIFAR-10)
+    num_test_samples=None,    # None = the whole test split (10k)
     batch_size=32,
     organize_interval_samples=1000,
     eval_interval_samples=5000,

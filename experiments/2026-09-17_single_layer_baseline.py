@@ -50,6 +50,7 @@ def main():
         data_root=BASE_DIR / "DATA",
         result_root=BASE_DIR / "RESULT",
         run_name="single_layer_baseline" + run_suffix,
+        dataset="mnist",
         training_mode="plain",
         integration_dim=None,
         head="readout",

@@ -78,20 +78,24 @@ If you want GPU acceleration, make sure the installed PyTorch build matches your
 
 ## Dataset Preparation
 
-The current training scripts use `torchvision.datasets.MNIST`.
+Datasets are registered in `training/datasets.py` (currently `mnist`, `fashion_mnist`, `kmnist`, `cifar10`, `cifar10_gray`) and stored under the project-local `DATA/` directory (override with `--data-root`). Input size and class count follow the dataset automatically in every training script.
 
-- If MNIST is not found locally, it will be downloaded automatically at runtime.
-- By default, datasets are stored under the project-local `DATA/` directory.
-- You can override the dataset location with the `--data-root` argument.
+```bash
+python training/datasets.py list                       # what is registered / already on disk
+python training/datasets.py download mnist cifar10     # fetch (skips files already present)
+python training/datasets.py download all
+```
+
+Training scripts download a missing dataset on the fly when the machine has internet. On the HPC, compute nodes do not, so run `bash hpc/download_data.sh` from a login node first. To add a dataset, add one `DatasetSpec` entry to `DATASETS`.
 
 ## Folder Layout
 
 - `architectures/`: full classifier architectures assembled from `modules/` (`single_layer.py`, `stacked.py`, `registry.py`)
 - `modules/`: layer-level components (discrimination layer, readout/classifier heads, integration layer)
-- `core/`: learning rules, memory protection, initialization, and monitoring
+- `core/`: learning rules, memory protection, initialization, monitoring, named checkpoints, and input perturbations (`perturbations.py`)
 - `training/`: training engines and runnable entry scripts
-- `analysis/`: analysis and visualization helpers
-- `experiments/`: named, dated experiment scripts (`<date>_<name>.py`). Each runs the full-scale config by default and takes `--smoke` for a minutes-long CPU code-path check; run sizes live in `experiments/_configs.py`
+- `analysis/`: analysis and visualization helpers, incl. the robustness sweep (`robustness.py`, point #4)
+- `experiments/`: named, dated experiment scripts (`<date>_<name>.py`). Each runs the full-scale config by default and takes `--smoke` for a minutes-long CPU code-path check; run sizes live in `experiments/_configs.py`. Every run writes `run_config.json` next to its logs so it can be rebuilt later (`training/run_config.py`)
 - `configs/`: reserved for configuration files
 - `docs/`: reserved for project documents
 - `DATA/`: local dataset root used by the training scripts
@@ -135,11 +139,35 @@ Multi-layer stack (2 discrimination layers by default), with review:
 python training/train_classifier_stacked.py --device cuda --training-mode review
 ```
 
-Custom layer sizes:
+Custom layer sizes (input/output follow `--dataset`):
 
 ```bash
-python training/train_classifier_stacked.py --layer-dims 784,2000,2000,2000,10
+python training/train_classifier_stacked.py --hidden-dims 2000,2000,2000
 ```
+
+### Other Datasets
+
+Any registered dataset works with both entry points:
+
+```bash
+python training/train_classifier.py --dataset fashion_mnist --num-train-samples 0 --num-test-samples 0
+python training/train_classifier_stacked.py --dataset cifar10 --hidden-dims 2000,2000
+```
+
+### Experiments
+
+Named, dated scripts under `experiments/` fix one configuration each (full-scale by default, `--smoke` for a quick code-path check):
+
+```bash
+python experiments/2026-09-17_single_layer_baseline.py
+python experiments/2026-09-17_point5_traditional_head.py
+python experiments/2026-09-17_stacked_2layer_baseline.py
+python experiments/2026-09-18_point6_fashion_mnist.py --arch stacked --head readout
+python experiments/2026-09-18_point6_cifar10.py --head traditional_mlp
+python experiments/2026-09-18_point4_robustness.py --runs single_layer_baseline point5_traditional_head stacked_2layer_baseline
+```
+
+On the HPC: `bash hpc/download_data.sh` (login node), then `bash hpc/submit_all.sh` or `sbatch hpc/run_experiment.slurm <script> [flags]`.
 
 ### Common Options
 
@@ -150,6 +178,8 @@ python training/train_classifier_stacked.py --layer-dims 784,2000,2000,2000,10
 - `--organize-interval-samples`: set how many samples are processed between organize updates
 - `--eval-interval-samples`: set how many samples are processed between evaluation passes
 - `--review-per-sample-max`: set the maximum replay budget per real sample in review mode
+- `--dataset`: any dataset registered in `training/datasets.py`
+- `--num-train-samples` / `--num-test-samples`: subset sizes (`0` = the whole split)
 - `--data-root`: override the default dataset directory
 
 For the full CLI configuration, see:

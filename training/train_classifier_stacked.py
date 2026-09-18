@@ -8,8 +8,9 @@ via training.training_engines.train_classifier_stacked_plain /
 train_classifier_stacked_with_review (see that file for why the stacked
 model gets its own engines instead of reusing the single-layer ones).
 
-Caveat (same as everywhere else new in this repo so far): syntax-checked
-and logic-reviewed only, not yet run with real torch on this machine.
+Datasets come from training/datasets.py (--dataset); the stack's input and
+output sizes follow the dataset, so --hidden-dims only lists the
+discrimination-layer widths (e.g. 2000,2000).
 """
 import argparse
 from pathlib import Path
@@ -19,9 +20,7 @@ import sys
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from torch.utils.data import DataLoader, Subset
-from torchvision import transforms
-from torchvision.datasets import MNIST
+from torch.utils.data import DataLoader
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(PROJECT_ROOT) not in sys.path:
@@ -31,11 +30,14 @@ from analysis.analysis_engine import AnalysisEngine
 from core.checkpointing import save_stack
 from core.initializers import DatasetInitializerWhole
 from architectures.stacked import StackedBiologicalClassifier
+from training.datasets import DATASET_CHOICES, get_dataset
+from training.run_config import write_run_config
 from training.train_classifier import (
     HEAD_CHOICES,
     build_eval_log_path,
     build_train_log_path,
     flatten_to_vector,
+    make_subset,
     resolve_head,
     select_device,
     summarize_cycle,
@@ -85,9 +87,11 @@ def run_classifier_train_stacked(
     data_root: Path,
     result_root: Path,
     run_name: str = "gpu_rebuild_stacked_classifier",
-    layer_dims: Tuple[int, ...] = (784, 2000, 2000, 10),
-    num_train_samples: int = 1000,
-    num_test_samples: int = 1000,
+    dataset: str = "mnist",
+    hidden_dims: Tuple[int, ...] = (2000, 2000),
+    layer_dims: Optional[Tuple[int, ...]] = None,
+    num_train_samples: Optional[int] = 1000,
+    num_test_samples: Optional[int] = 1000,
     batch_size: int = 4,
     organize_interval_samples: int = 200,
     eval_interval_samples: int = 0,
@@ -111,9 +115,13 @@ def run_classifier_train_stacked(
     checkpoints_dir: Optional[Path] = None,
 ) -> float:
     """
-    Runs one stacked-classifier training experiment. `layer_dims` is
-    [input, hidden_1, ..., hidden_N, output] - e.g. (784, 2000, 2000, 10)
-    for a 2-discrimination-layer stack on MNIST. Defaults to
+    Runs one stacked-classifier training experiment on `dataset` (any name
+    in training.datasets.DATASETS). `hidden_dims` lists the discrimination
+    layer widths, e.g. (2000, 2000) for a 2-layer stack; the input and
+    output sizes come from the dataset. `layer_dims` (full
+    [input, hidden..., output]) is still accepted for backward
+    compatibility and must then match the dataset's input_dim/num_classes.
+    num_train_samples / num_test_samples = None (or 0) means the full split. Defaults to
     training_mode="review" (not "plain" like the single-layer entry point)
     because the original stacked baseline this is modeled on reached its
     92.59%/92.99% result WITH review; organize-only is expected to
@@ -121,13 +129,21 @@ def run_classifier_train_stacked(
 
     Returns the final test accuracy (%).
     """
+    spec, train_dataset, test_dataset = get_dataset(dataset, data_root=data_root)
+    if layer_dims is None:
+        layer_dims = (spec.input_dim, *[int(h) for h in hidden_dims], spec.num_classes)
     layer_dims = tuple(int(d) for d in layer_dims)
+    if layer_dims[0] != spec.input_dim or layer_dims[-1] != spec.num_classes:
+        raise ValueError(
+            f"layer_dims {layer_dims} does not match dataset '{spec.name}' "
+            f"(input_dim={spec.input_dim}, num_classes={spec.num_classes}). "
+            "Pass hidden_dims instead and let the dataset set the ends."
+        )
 
-    train_dataset = MNIST(root=str(data_root), train=True, transform=transforms.ToTensor(), download=True)
-    test_dataset = MNIST(root=str(data_root), train=False, transform=transforms.ToTensor(), download=True)
-
-    train_subset = Subset(train_dataset, list(range(num_train_samples)))
-    test_subset = Subset(test_dataset, list(range(num_test_samples)))
+    train_subset = make_subset(train_dataset, num_train_samples)
+    test_subset = make_subset(test_dataset, num_test_samples)
+    num_train_samples = len(train_subset)
+    num_test_samples = len(test_subset)
 
     train_loader = DataLoader(train_subset, batch_size=batch_size, shuffle=True, drop_last=False)
     test_loader = DataLoader(test_subset, batch_size=batch_size, shuffle=False, drop_last=False)
@@ -144,11 +160,12 @@ def run_classifier_train_stacked(
 
     head_cls, head_kwargs = resolve_head(head, head_hidden_dims, head_dropout)
 
+    discrimination_config = dict(DEFAULT_DISCRIMINATION_CONFIG)
     model = StackedBiologicalClassifier(
         layer_dims=list(layer_dims),
         data_initializer=data_initializer,
         transform=flatten_to_vector,
-        discrimination_config=dict(DEFAULT_DISCRIMINATION_CONFIG),
+        discrimination_config=discrimination_config,
         head_cls=head_cls,
         head_kwargs=head_kwargs,
     ).to(device)
@@ -163,9 +180,29 @@ def run_classifier_train_stacked(
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.readout_head.parameters(), lr=1e-3)
 
-    analysis = AnalysisEngine(base_dir=result_root, run_name=run_name) if enable_analysis else None
+    analysis = AnalysisEngine(base_dir=result_root, run_name=run_name, image_hw=spec.patch_hw) if enable_analysis else None
     eval_log_path = build_eval_log_path(result_root, analysis) if save_eval_log else None
     train_log_path = build_train_log_path(result_root, analysis) if save_train_log else None
+    if analysis is not None:
+        write_run_config(analysis.run_dir, {
+            "arch": "stacked",
+            "dataset": spec.name,
+            "input_dim": spec.input_dim,
+            "num_classes": spec.num_classes,
+            "image_chw": list(spec.image_chw),
+            "layer_dims": list(layer_dims),
+            "head": head,
+            "head_hidden_dims": list(head_hidden_dims),
+            "head_dropout": head_dropout,
+            "discrimination_config": discrimination_config,
+            "training_mode": training_mode,
+            "init_mode": init_mode,
+            "num_train_samples": num_train_samples,
+            "num_test_samples": num_test_samples,
+            "batch_size": batch_size,
+            "organize_interval_samples": organize_interval_samples,
+            "run_name": run_name,
+        })
 
     def eval_logger(tag: str, step: int, samples: int, acc: float) -> None:
         if eval_log_path is None:
@@ -182,6 +219,7 @@ def run_classifier_train_stacked(
     setup_lines = [
         f"[run_name] {run_name}",
         f"[device] {device}",
+        f"[dataset] {spec.name} (input_dim={spec.input_dim}, num_classes={spec.num_classes})",
         f"[layer_dims] {layer_dims}",
         f"[num_dl_layers] {model.num_dl_layers}",
         f"[train_subset] {num_train_samples}",
@@ -271,14 +309,21 @@ def parse_args():
     parser.add_argument("--data-root", type=str, default=str(Path(BASE_DIR) / "DATA"))
     parser.add_argument("--result-root", type=str, default=str(Path(BASE_DIR) / "RESULT"))
     parser.add_argument("--run-name", type=str, default="gpu_rebuild_stacked_classifier")
+    parser.add_argument("--dataset", type=str, default="mnist", choices=list(DATASET_CHOICES),
+                        help="Any dataset registered in training/datasets.py (input size and class count follow).")
     parser.add_argument(
-        "--layer-dims", type=str, default="784,2000,2000,10",
-        help="Comma-separated layer sizes: input,hidden_1,...,hidden_N,output. "
-             "Default is a 2-discrimination-layer stack matching the single-layer "
-             "baseline's hidden width (2000) at each level.",
+        "--hidden-dims", type=str, default="2000,2000",
+        help="Comma-separated discrimination-layer widths, one per layer. Default: a "
+             "2-layer stack at the single-layer baseline's width (2000) at each level. "
+             "Input and output sizes come from --dataset.",
     )
-    parser.add_argument("--num-train-samples", type=int, default=1000)
-    parser.add_argument("--num-test-samples", type=int, default=1000)
+    parser.add_argument(
+        "--layer-dims", type=str, default=None,
+        help="(legacy) full input,hidden_1,...,hidden_N,output list; must match --dataset. "
+             "Prefer --hidden-dims.",
+    )
+    parser.add_argument("--num-train-samples", type=int, default=1000, help="0 = the whole training split.")
+    parser.add_argument("--num-test-samples", type=int, default=1000, help="0 = the whole test split.")
     parser.add_argument("--batch-size", type=int, default=4)
     parser.add_argument("--organize-interval-samples", type=int, default=200)
     parser.add_argument("--eval-interval-samples", type=int, default=0)
@@ -310,7 +355,9 @@ if __name__ == "__main__":
         data_root=Path(args.data_root),
         result_root=Path(args.result_root),
         run_name=args.run_name,
-        layer_dims=_parse_layer_dims(args.layer_dims),
+        dataset=args.dataset,
+        hidden_dims=_parse_layer_dims(args.hidden_dims),
+        layer_dims=_parse_layer_dims(args.layer_dims) if args.layer_dims else None,
         num_train_samples=args.num_train_samples,
         num_test_samples=args.num_test_samples,
         batch_size=args.batch_size,

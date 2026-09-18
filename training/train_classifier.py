@@ -8,8 +8,6 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader, Subset
-from torchvision import transforms
-from torchvision.datasets import MNIST
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(PROJECT_ROOT) not in sys.path:
@@ -21,11 +19,51 @@ from core.initializers import DatasetInitializerWhole
 from architectures.single_layer import BiologicalClassifier
 from modules.classifier_heads import TraditionalMLPHead
 from modules.readout import ReadoutHead
+from training.datasets import DATASET_CHOICES, get_dataset
+from training.run_config import write_run_config
 from training.training_engines import evaluate_classifier, train_classifier_plain, train_classifier_with_review
 
 BASE_DIR = str(PROJECT_ROOT)
 
 HEAD_CHOICES = ("readout", "traditional_mlp")
+
+# The single-layer baseline's DiscriminationLayer hyperparameters. Kept as a
+# module constant so it can be recorded in each run's run_config.json and
+# rebuilt from it later (training/run_config.py).
+DEFAULT_DISCRIMINATION_CONFIG = {
+    "non_negative": True,
+    "beta": 199 / 200,
+    "lr_init": 0.99,
+    "min_lr": 1e-3,
+    "max_lr": 0.99,
+    "threshold_factor": 1.0,
+    "sparsity": 0.05,
+    "optimizer_max_iters": 1000,
+    "optimizer_lambda": 0.1,
+    "optimizer_gain_factor": 10.0,
+    "optimizer_estimate_steps": 50,
+    "recover_step": 0.05,
+    "recover_alpha": 0.2,
+    "strength_gate_k": 1.0,
+    "lr_gate_n": 0.5,
+    "half_count": 100.0,
+    "strong_bonus": 0.5,
+    "std_scale": 1.5,
+    "strong_bonus_power": 2.0,
+    "strong_bonus_cap": 3.0,
+    "state_cache_capacity": 200,
+    "strength_decay_start": 5,
+    "strength_decay_power": 2.0,
+    "strength_decay_scale": 1.0,
+    "use_cooldown": False,
+}
+
+
+def make_subset(dataset, num_samples: Optional[int]):
+    """First `num_samples` items, or the whole dataset when num_samples is None or <= 0."""
+    if num_samples is None or int(num_samples) <= 0:
+        return dataset
+    return Subset(dataset, list(range(min(int(num_samples), len(dataset)))))
 
 
 def select_device(device_arg: str) -> torch.device:
@@ -94,8 +132,10 @@ def run_classifier_train(
     data_root: Path,
     result_root: Path,
     run_name: str = "gpu_rebuild_classifier",
-    num_train_samples: int = 1000,
-    num_test_samples: int = 1000,
+    dataset: str = "mnist",
+    hidden_dim: int = 2000,
+    num_train_samples: Optional[int] = 1000,
+    num_test_samples: Optional[int] = 1000,
     batch_size: int = 4,
     organize_interval_samples: int = 200,
     eval_interval_samples: int = 0,
@@ -123,7 +163,10 @@ def run_classifier_train(
     checkpoints_dir: Optional[Path] = None,
 ) -> float:
     """
-    Runs one classifier training experiment. `run_name` names its
+    Runs one classifier training experiment on `dataset` (any name in
+    training.datasets.DATASETS; input_dim / num_classes come from its spec).
+    num_train_samples / num_test_samples = None (or 0) means the full split.
+    `run_name` names its
     RESULT/<run_name>/<timestamp>/ folder (distinct experiments should use
     distinct run_names - see experiments/ for named, dated wrapper scripts
     that fix a run_name and config for a specific comparison). If
@@ -134,11 +177,12 @@ def run_classifier_train(
 
     Returns the final test accuracy (%).
     """
-    train_dataset = MNIST(root=str(data_root), train=True, transform=transforms.ToTensor(), download=True)
-    test_dataset = MNIST(root=str(data_root), train=False, transform=transforms.ToTensor(), download=True)
+    spec, train_dataset, test_dataset = get_dataset(dataset, data_root=data_root)
 
-    train_subset = Subset(train_dataset, list(range(num_train_samples)))
-    test_subset = Subset(test_dataset, list(range(num_test_samples)))
+    train_subset = make_subset(train_dataset, num_train_samples)
+    test_subset = make_subset(test_dataset, num_test_samples)
+    num_train_samples = len(train_subset)
+    num_test_samples = len(test_subset)
 
     train_loader = DataLoader(train_subset, batch_size=batch_size, shuffle=True, drop_last=False)
     test_loader = DataLoader(test_subset, batch_size=batch_size, shuffle=False, drop_last=False)
@@ -155,43 +199,18 @@ def run_classifier_train(
 
     head_cls, head_kwargs = resolve_head(head, head_hidden_dims, head_dropout)
 
+    discrimination_config = dict(DEFAULT_DISCRIMINATION_CONFIG)
     model = BiologicalClassifier(
-        input_dim=784,
-        hidden_dim=2000,
-        output_dim=10,
+        input_dim=spec.input_dim,
+        hidden_dim=hidden_dim,
+        output_dim=spec.num_classes,
         data_initializer=data_initializer,
         transform=flatten_to_vector,
         integration_dim=integration_dim,
         integration_activation=integration_activation,
         head_cls=head_cls,
         head_kwargs=head_kwargs,
-        discrimination_config={
-            "non_negative": True,
-            "beta": 199 / 200,
-            "lr_init": 0.99,
-            "min_lr": 1e-3,
-            "max_lr": 0.99,
-            "threshold_factor": 1.0,
-            "sparsity": 0.05,
-            "optimizer_max_iters": 1000,
-            "optimizer_lambda": 0.1,
-            "optimizer_gain_factor": 10.0,
-            "optimizer_estimate_steps": 50,
-            "recover_step": 0.05,
-            "recover_alpha": 0.2,
-            "strength_gate_k": 1.0,
-            "lr_gate_n": 0.5,
-            "half_count": 100.0,
-            "strong_bonus": 0.5,
-            "std_scale": 1.5,
-            "strong_bonus_power": 2.0,
-            "strong_bonus_cap": 3.0,
-            "state_cache_capacity": 200,
-            "strength_decay_start": 5,
-            "strength_decay_power": 2.0,
-            "strength_decay_scale": 1.0,
-            "use_cooldown": False,
-        },
+        discrimination_config=discrimination_config,
     ).to(device)
     model.train()
     model.activation_cache.max_size = int(review_cache_size)
@@ -207,9 +226,31 @@ def run_classifier_train(
         trainable_params += list(model.integration_layer.parameters())
     optimizer = optim.Adam(trainable_params, lr=1e-3)
 
-    analysis = AnalysisEngine(base_dir=result_root, run_name=run_name) if enable_analysis else None
+    analysis = AnalysisEngine(base_dir=result_root, run_name=run_name, image_hw=spec.patch_hw) if enable_analysis else None
     eval_log_path = build_eval_log_path(result_root, analysis) if save_eval_log else None
     train_log_path = build_train_log_path(result_root, analysis) if save_train_log else None
+    if analysis is not None:
+        write_run_config(analysis.run_dir, {
+            "arch": "single_layer",
+            "dataset": spec.name,
+            "input_dim": spec.input_dim,
+            "num_classes": spec.num_classes,
+            "image_chw": list(spec.image_chw),
+            "hidden_dim": hidden_dim,
+            "head": head,
+            "head_hidden_dims": list(head_hidden_dims),
+            "head_dropout": head_dropout,
+            "integration_dim": integration_dim,
+            "integration_activation": integration_activation,
+            "discrimination_config": discrimination_config,
+            "training_mode": training_mode,
+            "init_mode": init_mode,
+            "num_train_samples": num_train_samples,
+            "num_test_samples": num_test_samples,
+            "batch_size": batch_size,
+            "organize_interval_samples": organize_interval_samples,
+            "run_name": run_name,
+        })
 
     def eval_logger(tag: str, step: int, samples: int, acc: float) -> None:
         if eval_log_path is None:
@@ -226,6 +267,8 @@ def run_classifier_train(
     setup_lines = [
         f"[run_name] {run_name}",
         f"[device] {device}",
+        f"[dataset] {spec.name} (input_dim={spec.input_dim}, num_classes={spec.num_classes})",
+        f"[hidden_dim] {hidden_dim}",
         f"[train_subset] {num_train_samples}",
         f"[test_subset] {num_test_samples}",
         f"[batch_size] {batch_size}",
@@ -325,8 +368,11 @@ def parse_args():
                          help="Names this run's RESULT/<run-name>/<timestamp>/ folder. "
                               "Use a distinct name per experiment (e.g. 'point5_traditional_head') "
                               "so different experiments' logs don't mix together.")
-    parser.add_argument("--num-train-samples", type=int, default=1000)
-    parser.add_argument("--num-test-samples", type=int, default=1000)
+    parser.add_argument("--dataset", type=str, default="mnist", choices=list(DATASET_CHOICES),
+                        help="Any dataset registered in training/datasets.py (input size and class count follow).")
+    parser.add_argument("--hidden-dim", type=int, default=2000, help="Discrimination-layer width.")
+    parser.add_argument("--num-train-samples", type=int, default=1000, help="0 = the whole training split.")
+    parser.add_argument("--num-test-samples", type=int, default=1000, help="0 = the whole test split.")
     parser.add_argument("--batch-size", type=int, default=4)
     parser.add_argument("--organize-interval-samples", type=int, default=200)
     parser.add_argument("--eval-interval-samples", type=int, default=0)
@@ -400,6 +446,8 @@ if __name__ == "__main__":
         data_root=Path(args.data_root),
         result_root=Path(args.result_root),
         run_name=args.run_name,
+        dataset=args.dataset,
+        hidden_dim=args.hidden_dim,
         num_train_samples=args.num_train_samples,
         num_test_samples=args.num_test_samples,
         batch_size=args.batch_size,

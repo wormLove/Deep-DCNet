@@ -59,6 +59,7 @@ def main():
         data_root=BASE_DIR / "DATA",
         result_root=BASE_DIR / "RESULT",
         run_name="point5_traditional_head" + run_suffix,
+        dataset="mnist",
         training_mode="plain",
         integration_dim=None,
         head="traditional_mlp",
