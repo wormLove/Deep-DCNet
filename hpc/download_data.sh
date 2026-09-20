@@ -2,10 +2,10 @@
 # =============================================================================
 # Pre-download datasets - run this from the HPC LOGIN NODE only.
 #
-# Compute nodes on CWRU HPC do NOT have outbound internet access, so datasets
-# must be downloaded before a job starts. Every dataset the code knows about
-# is registered in training/datasets.py; this script just calls its
-# downloader.
+# Compute nodes on Markov do NOT have outbound internet access, so datasets
+# must be downloaded before a job starts. Every dataset the code knows
+# about is registered in training/datasets.py; this script calls its
+# downloader inside the venv from hpc/setup_env.sh.
 #
 # Usage (from the project root):
 #   bash hpc/download_data.sh                      # mnist fashion_mnist cifar10
@@ -17,7 +17,9 @@
 
 set -e
 
-module load PyTorch-bundle/2.1.2-foss-2023a-CUDA-12.1.1
+module purge
+module load Python/3.13.5-GCCcore-14.3.0
+source "$HOME/dcnet_venv/bin/activate"
 
 if [ $# -eq 0 ]; then
     set -- mnist fashion_mnist cifar10
