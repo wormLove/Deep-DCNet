@@ -97,12 +97,11 @@ def run_smoke_train(
             "lr_init": 0.99,
             "min_lr": 1e-3,
             "max_lr": 0.99,
-            "threshold_factor": 1.0,
-            "sparsity": 0.05,
             "optimizer_max_iters": 1000,
-            "optimizer_lambda": 0.1,
-            "optimizer_gain_factor": 10.0,
-            "optimizer_estimate_steps": 50,
+            "optimizer_variance_stop_window": 20,
+            "optimizer_variance_stop_nonzero_ratio": 0.08,
+            "optimizer_variance_stop_initial_nonzero_ratio": 0.05,
+            "optimizer_variance_stop_initial_max_iters": 20000,
             "recover_step": 0.05,
             "recover_alpha": 0.2,
             "strength_gate_k": 1.0,
@@ -132,6 +131,7 @@ def run_smoke_train(
     print(f"[batch_size] {batch_size}")
     print(f"[organize_interval_samples] {organize_interval_samples}")
     print(f"[init_mode] {init_mode}")
+    print("[optimizer_profile] variance_turning_stop")
     if init_mode == "dataset":
         print(f"[init_ratio] {init_ratio}")
         print(f"[init_dataset_scope] {init_dataset_scope}")
