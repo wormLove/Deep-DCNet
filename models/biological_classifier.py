@@ -151,5 +151,8 @@ class BiologicalClassifier(nn.Module):
     def load_model(self, path: str, map_location=None) -> None:
         state = torch.load(path, map_location=map_location)
         self.discrimination_layer.load_state_dict(state["discrimination_layer"])
+        self.discrimination_layer.activity_optimizer.update_cached_gain(
+            self.discrimination_layer.neuron_correlation_matrix
+        )
         if self.readout_head is not None and "readout_head" in state:
             self.readout_head.load_state_dict(state["readout_head"])

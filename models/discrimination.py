@@ -8,7 +8,6 @@ from core.initializers import RandomInitializer
 from core.lr_policy import ProtectWithRecoveryLR
 from core.organizer import DiscriminationOrganizer
 from core.stats import NeuronStateTracker
-from models.activation import LayerThresholding
 from models.optimizer import IterativeActivityOptimizer
 
 
@@ -30,12 +29,11 @@ class DiscriminationLayer(nn.Module):
         out_dim: int,
         initializer=None,
         non_negative: bool = True,
-        threshold_factor: float = 1.0,
-        sparsity: float = 0.05,
         optimizer_max_iters: int = 1000,
-        optimizer_lambda: float = 0.1,
-        optimizer_gain_factor: float = 10.0,
-        optimizer_estimate_steps: int = 50,
+        optimizer_variance_stop_window: int = 20,
+        optimizer_variance_stop_nonzero_ratio: float = 0.08,
+        optimizer_variance_stop_initial_nonzero_ratio: float | None = 0.05,
+        optimizer_variance_stop_initial_max_iters: int = 20000,
         lr_init: float = 0.99,
         min_lr: float = 1e-3,
         max_lr: float = 0.99,
@@ -75,18 +73,15 @@ class DiscriminationLayer(nn.Module):
         self.neuron_weights = nn.Parameter(weights)
 
         self.activity_optimizer = IterativeActivityOptimizer(
-            # Phase-1 baseline values: intentionally lightweight for the first
-            # GPU-friendly rebuild benchmark configuration.
             max_iters=optimizer_max_iters,
-            lambda_=optimizer_lambda,
-            gain_factor=optimizer_gain_factor,
-            estimate_steps=optimizer_estimate_steps,
+            variance_stop_window=optimizer_variance_stop_window,
+            variance_stop_nonzero_ratio=optimizer_variance_stop_nonzero_ratio,
+            variance_stop_initial_nonzero_ratio=(
+                optimizer_variance_stop_initial_nonzero_ratio
+            ),
+            variance_stop_initial_max_iters=optimizer_variance_stop_initial_max_iters,
         )
-        self.activation = LayerThresholding(
-            threshold_factor=threshold_factor,
-            sparsity=sparsity,
-            soft=False,
-        )
+        self.activation = nn.ReLU()
         self.organizer = DiscriminationOrganizer(
             in_dim=in_dim,
             out_dim=out_dim,
@@ -142,6 +137,9 @@ class DiscriminationLayer(nn.Module):
         weights = self.neuron_weights
         corr = self.neuron_correlation_matrix
         act_raw = torch.matmul(x, weights)
+        self.activity_optimizer.set_variance_stop_initial_phase(
+            not bool(self.lr_ready.item())
+        )
         act_opt = self.activity_optimizer(act_raw, corr)
         act = self.activation(act_opt)
 
