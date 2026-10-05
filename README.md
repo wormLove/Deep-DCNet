@@ -13,7 +13,7 @@ Instead of relying on standard end-to-end backpropagation through the full netwo
 
 The current GPU rebuild preserves the core ideas of the original CPU research prototype while reformulating the training process for mini-batch computation. In particular, it includes:
 
-- iterative activity optimization with lateral competition
+- iterative activity optimization with lateral competition and variance-based stopping
 - Hebbian / Anti-Hebbian potential accumulation
 - neuron-level memory statistics and nonlinear learning-rate recovery
 - review-based readout reinforcement
@@ -31,7 +31,7 @@ This repository focuses on the single-target GPU baseline of DCNet and serves as
 
 - Biologically inspired representation learning for continual adaptation
 - Local learning in the discrimination layer, without end-to-end backpropagation through the full model
-- Iterative activity optimization with lateral competition and sparse activation selection
+- Iterative activity optimization with lateral competition and emergent sparse activity
 - Hebbian / Anti-Hebbian organization with organize-cycle updates
 - Per-neuron learning-rate protection and nonlinear recovery based on memory statistics
 - Optional review-based readout training for replay-style reinforcement
@@ -97,6 +97,9 @@ The current training scripts use `torchvision.datasets.MNIST`.
 - `RESULT/`: local output root for logs, checkpoints, and visualizations
 
 ## Usage
+
+The optimizer design, research path, final equations, and validation results are
+documented in [Iterative Activity Optimizer Development](docs/iterative-activity-optimizer.md).
 
 ### Classifier Training
 
