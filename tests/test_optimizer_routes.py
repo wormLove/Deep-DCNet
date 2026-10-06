@@ -3,6 +3,12 @@ import unittest
 import torch
 from torch import nn
 
+from core.initializers import (
+    DatasetInitializerWhole,
+    RandomInitializer,
+    apply_non_negative_transform,
+)
+from models.biological_classifier import BiologicalClassifier
 from models.discrimination import DiscriminationLayer
 from models.optimizer import IterativeActivityOptimizer
 
@@ -36,8 +42,69 @@ class OptimizerRouteTest(unittest.TestCase):
         optimizer = layer.activity_optimizer
 
         self.assertIsInstance(layer.activation, nn.ReLU)
+        self.assertEqual(layer.non_negative_strategy, "abs")
+        self.assertEqual(layer.weight_norm_p, 2)
+        self.assertFalse(optimizer.y0_divide_by_diagonal)
         self.assertEqual(optimizer.variance_stop_initial_nonzero_ratio, 0.05)
         self.assertEqual(optimizer.variance_stop_nonzero_ratio, 0.08)
+
+    def test_non_negative_transforms_remain_selectable(self):
+        weights = torch.tensor([[-2.0, 1.0], [3.0, -4.0]])
+
+        torch.testing.assert_close(
+            apply_non_negative_transform(weights, strategy="abs"),
+            torch.tensor([[2.0, 1.0], [3.0, 4.0]]),
+        )
+        torch.testing.assert_close(
+            apply_non_negative_transform(weights, strategy="shift"),
+            torch.tensor([[2.0, 5.0], [7.0, 0.0]]),
+        )
+        torch.testing.assert_close(
+            apply_non_negative_transform(weights, strategy="relu"),
+            torch.tensor([[0.0, 1.0], [3.0, 0.0]]),
+        )
+
+    def test_dataset_initializer_uses_audited_defaults(self):
+        initializer = DatasetInitializerWhole(dataset=[], transform=lambda value: value)
+
+        self.assertEqual(initializer.non_negative_strategy, "abs")
+        self.assertFalse(initializer.mid_matrix)
+        self.assertEqual(
+            initializer.configuration(),
+            {
+                "type": "DatasetInitializerWhole",
+                "init_ratio": 0.25,
+                "non_negative": True,
+                "non_negative_strategy": "abs",
+                "mid_matrix": False,
+            },
+        )
+
+    def test_l1_forces_diagonal_scaled_start(self):
+        layer = DiscriminationLayer(
+            in_dim=4,
+            out_dim=8,
+            weight_norm_p=1,
+            optimizer_y0_divide_by_diagonal=False,
+        )
+
+        self.assertTrue(layer.activity_optimizer.y0_divide_by_diagonal)
+
+    def test_model_records_resolved_initialization_profile(self):
+        initializer = RandomInitializer(non_negative_strategy="shift")
+        model = BiologicalClassifier(
+            input_dim=4,
+            hidden_dim=8,
+            data_initializer=initializer,
+            discrimination_config={"non_negative_strategy": "relu"},
+        )
+
+        self.assertEqual(model.discrimination_config["non_negative_strategy"], "shift")
+        self.assertEqual(model.discrimination_config["weight_norm_p"], 2)
+        self.assertFalse(
+            model.discrimination_config["optimizer_y0_divide_by_diagonal"]
+        )
+        self.assertEqual(model.initializer_config, initializer.configuration())
 
     def test_clean_optimizer_matches_verified_numeric_behavior(self):
         correlation = torch.tensor(

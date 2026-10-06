@@ -101,6 +101,9 @@ The current training scripts use `torchvision.datasets.MNIST`.
 The optimizer design, research path, final equations, and validation results are
 documented in [Iterative Activity Optimizer Development](docs/iterative-activity-optimizer.md).
 
+The initialization choices, normalization audit, and retained experimental routes
+are documented in [Initialization Pipeline Audit](docs/initialization-pipeline-audit.md).
+
 ### Classifier Training
 
 Classifier training with review:
