@@ -29,11 +29,14 @@ class DiscriminationLayer(nn.Module):
         out_dim: int,
         initializer=None,
         non_negative: bool = True,
+        non_negative_strategy: str = "abs",
+        weight_norm_p: int = 2,
         optimizer_max_iters: int = 1000,
         optimizer_variance_stop_window: int = 20,
         optimizer_variance_stop_nonzero_ratio: float = 0.08,
         optimizer_variance_stop_initial_nonzero_ratio: float | None = 0.05,
         optimizer_variance_stop_initial_max_iters: int = 20000,
+        optimizer_y0_divide_by_diagonal: bool | None = None,
         lr_init: float = 0.99,
         min_lr: float = 1e-3,
         max_lr: float = 0.99,
@@ -59,6 +62,37 @@ class DiscriminationLayer(nn.Module):
         self.in_dim = int(in_dim)
         self.out_dim = int(out_dim)
         self.non_negative = bool(non_negative)
+        self.non_negative_strategy = str(non_negative_strategy)
+        # Which norm fixes each neuron's total synaptic resource. p=2 is the default
+        # and keeps diag(W^T W) == 1 exactly; p=1 states the constraint as "the
+        # weights sum to a constant", which is what a resource budget literally means
+        # for non-negative weights, and leaves diag(W^T W) varying with how
+        # concentrated the receptive field is. Only the per-column scale differs
+        # between the two - every neuron's preferred direction is identical.
+        #
+        # p=1 is an experimental configuration, not the production default. It is
+        # measured end to end in
+        # RESULT/Deep-DCNet-Init-Pipeline-Audit/03-normalization: it reaches 94.83%
+        # against p=2's 96.14%, and it gets there with the variance turning point
+        # firing on only 24% of batches - three quarters exit by exhausting
+        # optimizer_max_iters rather than by satisfying the stop criterion, which the
+        # cap is not meant to do. It is kept selectable so that run can be reproduced
+        # and so the open questions in that document can be picked up later.
+        if int(weight_norm_p) not in (1, 2):
+            raise ValueError("weight_norm_p must be 1 or 2.")
+        self.weight_norm_p = int(weight_norm_p)
+
+        # The optimizer's starting point is tied to the norm, not chosen beside it.
+        # Under p=2 diag(W^T W) == 1 and the two starting points are the same run, so
+        # the default stays y0 = a and archived p=2 results reproduce bit for bit.
+        # Under p=1 they are not the same run: y0 = a starts about s^2 ~ 300x below
+        # its own solution, the suppression step never crosses zero, relu never fires,
+        # and the turning point was measured firing on 12 of 80 cases with 68 of them
+        # exhausting the 20000-iteration budget. So p=1 does not get a choice here.
+        if self.weight_norm_p == 1:
+            optimizer_y0_divide_by_diagonal = True
+        else:
+            optimizer_y0_divide_by_diagonal = bool(optimizer_y0_divide_by_diagonal)
         self.strength_decay_start = int(strength_decay_start)
         self.strength_decay_power = float(strength_decay_power)
         self.strength_decay_scale = float(strength_decay_scale)
@@ -67,9 +101,20 @@ class DiscriminationLayer(nn.Module):
         self.lr_max = float(max_lr)
 
         if initializer is None:
-            initializer = RandomInitializer(non_negative=self.non_negative)
+            initializer = RandomInitializer(
+                non_negative=self.non_negative,
+                non_negative_strategy=self.non_negative_strategy,
+            )
+        elif hasattr(initializer, "non_negative_strategy"):
+            # A supplied initializer owns the transform applied to its weights.
+            self.non_negative_strategy = str(initializer.non_negative_strategy)
+        self.initializer_config = (
+            initializer.configuration()
+            if hasattr(initializer, "configuration")
+            else {"type": type(initializer).__name__}
+        )
         weights = initializer.weights((self.in_dim, self.out_dim))
-        weights = F.normalize(weights, p=2, dim=0)
+        weights = F.normalize(weights, p=self.weight_norm_p, dim=0)
         self.neuron_weights = nn.Parameter(weights)
 
         self.activity_optimizer = IterativeActivityOptimizer(
@@ -80,6 +125,7 @@ class DiscriminationLayer(nn.Module):
                 optimizer_variance_stop_initial_nonzero_ratio
             ),
             variance_stop_initial_max_iters=optimizer_variance_stop_initial_max_iters,
+            y0_divide_by_diagonal=optimizer_y0_divide_by_diagonal,
         )
         self.activation = nn.ReLU()
         self.organizer = DiscriminationOrganizer(
@@ -210,11 +256,11 @@ class DiscriminationLayer(nn.Module):
                     device=updated_weights.device,
                     dtype=updated_weights.dtype,
                 )
-                reinit = F.normalize(reinit, p=2, dim=0)
+                reinit = F.normalize(reinit, p=self.weight_norm_p, dim=0)
                 updated_weights[:, zero_cols] = reinit
 
         if unit_norm:
-            updated_weights = F.normalize(updated_weights, p=2, dim=0)
+            updated_weights = F.normalize(updated_weights, p=self.weight_norm_p, dim=0)
 
         self.neuron_weights.data.copy_(updated_weights)
         self.neuron_correlation_matrix.copy_(self.compute_neuron_correlation_matrix())

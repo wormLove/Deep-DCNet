@@ -21,6 +21,7 @@ class IterativeActivityOptimizer(nn.Module):
         variance_stop_nonzero_ratio: float = 0.08,
         variance_stop_initial_nonzero_ratio: Optional[float] = 0.05,
         variance_stop_initial_max_iters: int = 20000,
+        y0_divide_by_diagonal: bool = False,
     ):
         super().__init__()
         self.max_iters = int(max_iters)
@@ -32,6 +33,16 @@ class IterativeActivityOptimizer(nn.Module):
             else variance_stop_initial_nonzero_ratio
         )
         self.variance_stop_initial_max_iters = int(variance_stop_initial_max_iters)
+        # y0 = x is not scale free: under the substitution y -> sy, C -> C/s^2,
+        # x -> x/s the iteration is exactly equivariant and requires y0 -> s*y0,
+        # but y0 = x supplies x/s instead, missing by s^2. L2 column normalization
+        # hides this because it fixes s = 1. Under L1, s = ||w||_1 ~ 17 and the
+        # iteration starts ~300x below its own solution. y0_j = x_j / C_jj is the
+        # per-neuron least-squares solution ignoring lateral interaction, and it
+        # restores the equivariance exactly. It is off by default because diag(C)
+        # is only 1.0 to float32 rounding under L2 (906/1000 entries differ), so
+        # enabling it perturbs archived L2 results by ~1e-5 relative.
+        self.y0_divide_by_diagonal = bool(y0_divide_by_diagonal)
         self._variance_stop_initial_phase = True
 
         if self.max_iters < 1 or self.variance_stop_initial_max_iters < 1:
@@ -140,7 +151,10 @@ class IterativeActivityOptimizer(nn.Module):
         ).clamp_min(1e-6)
         step_size = 1.0 / max_eigenvalue
 
-        y = x.clone()
+        if self.y0_divide_by_diagonal:
+            y = x / correlation.diagonal().clamp_min(1e-12)
+        else:
+            y = x.clone()
         variance_history: deque[torch.Tensor] = deque(
             [y.var(dim=1, unbiased=False).detach()],
             maxlen=2 * self.variance_stop_window,

@@ -34,7 +34,7 @@ class BiologicalClassifier(nn.Module):
     ):
         super().__init__()
         self.transform = transform if transform is not None else (lambda t: t)
-        self.discrimination_config = discrimination_config or {}
+        self.discrimination_config = dict(discrimination_config or {})
 
         self.discrimination_layer = DiscriminationLayer(
             in_dim=input_dim,
@@ -42,6 +42,19 @@ class BiologicalClassifier(nn.Module):
             initializer=data_initializer,
             **self.discrimination_config,
         )
+        # Record resolved behavior, not only caller-supplied overrides, so saved
+        # checkpoints remain reproducible if defaults change in a later release.
+        self.discrimination_config.update(
+            {
+                "non_negative": self.discrimination_layer.non_negative,
+                "non_negative_strategy": self.discrimination_layer.non_negative_strategy,
+                "weight_norm_p": self.discrimination_layer.weight_norm_p,
+                "optimizer_y0_divide_by_diagonal": (
+                    self.discrimination_layer.activity_optimizer.y0_divide_by_diagonal
+                ),
+            }
+        )
+        self.initializer_config = dict(self.discrimination_layer.initializer_config)
         self.output_dim = output_dim
         self.readout_head = ReadoutHead(hidden_dim, output_dim) if output_dim is not None else None
 
@@ -142,6 +155,7 @@ class BiologicalClassifier(nn.Module):
                 "version": "gpu_rebuild_stage1",
                 "has_readout": self.readout_head is not None,
                 "discrimination_config": self.discrimination_config,
+                "initializer_config": self.initializer_config,
             },
         }
         if self.readout_head is not None:

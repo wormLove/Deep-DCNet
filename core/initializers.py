@@ -6,27 +6,71 @@ from torch import Tensor
 from torch.utils.data import DataLoader, Dataset, RandomSampler
 
 
-def apply_non_negative_transform(weights: Tensor, enabled: bool = True) -> Tensor:
+# The three transforms audited in RESULT/Deep-DCNet-Init-Pipeline-Audit/
+# 01-non-negative-transform. They are kept selectable because the choice is a
+# research variable, not an implementation detail: each produces a different
+# lateral structure and a different organize-0 cost.
+#
+#   abs    reflects negative weights onto their magnitude. The default: fastest
+#          to organize 0 and best single-epoch accuracy of the three.
+#   shift  subtracts the global minimum. Preserves every pairwise difference
+#          exactly - center(shift(W)) == center(W) - but 97.69% of each column's
+#          energy then sits in the shared constant it introduces.
+#   relu   clips negatives to zero. The most defensible of the three on paper,
+#          and the most expensive: it exhausted the organize-0 iteration budget
+#          on 29 of 50 batches under the inv Mid Matrix.
+NON_NEGATIVE_TRANSFORMS = {
+    "abs": lambda w: w.abs(),
+    "shift": lambda w: w - w.min(),
+    "relu": lambda w: F.relu(w),
+}
+
+
+def apply_non_negative_transform(
+    weights: Tensor, enabled: bool = True, strategy: str = "abs"
+) -> Tensor:
     if not enabled:
         return weights
-    return weights - weights.min()
+    if strategy not in NON_NEGATIVE_TRANSFORMS:
+        raise ValueError(
+            f"unknown non_negative_strategy {strategy!r}; "
+            f"expected one of {sorted(NON_NEGATIVE_TRANSFORMS)}"
+        )
+    return NON_NEGATIVE_TRANSFORMS[strategy](weights)
 
 
 class RandomInitializer:
-    def __init__(self, non_negative: bool = True):
+    def __init__(self, non_negative: bool = True, non_negative_strategy: str = "abs"):
         self.non_negative = bool(non_negative)
+        self.non_negative_strategy = str(non_negative_strategy)
 
     def weights(self, dims: tuple[int, int]) -> Tensor:
         in_dim, out_dim = dims
         weights = torch.randn(in_dim, out_dim)
-        weights = apply_non_negative_transform(weights, enabled=self.non_negative)
+        weights = apply_non_negative_transform(
+            weights, enabled=self.non_negative, strategy=self.non_negative_strategy
+        )
         return weights
+
+    def configuration(self) -> dict:
+        return {
+            "type": type(self).__name__,
+            "non_negative": self.non_negative,
+            "non_negative_strategy": self.non_negative_strategy,
+        }
 
 
 class DatasetInitializerWhole:
     """
     PCA-based whole-image initializer aligned with the CPU research version's
     DatasetInitializer_Whole, adapted to the current flat 784-dim pipeline.
+
+    `mid_matrix` controls whether diag(Sn^-1) sits between the PCA basis and the
+    randomizer, where Sn is the explained-variance ratios. It is off by default:
+    RESULT/Deep-DCNet-Init-Pipeline-Audit/02-mid-matrix measured that it does not
+    equalise component contribution as its design intended - contribution goes as
+    1/Sn, so the weakest components dominate - and that removing it costs nothing
+    in accuracy while cutting organize-0 cost.
     """
 
     def __init__(
@@ -35,11 +79,15 @@ class DatasetInitializerWhole:
         transform: Callable[[Tensor], Tensor],
         init_ratio: float = 0.25,
         non_negative: bool = True,
+        non_negative_strategy: str = "abs",
+        mid_matrix: bool = False,
     ):
         self.dataset = dataset
         self.transform = transform
         self.init_ratio = float(init_ratio)
         self.non_negative = bool(non_negative)
+        self.non_negative_strategy = str(non_negative_strategy)
+        self.mid_matrix = bool(mid_matrix)
 
     def weights(self, dims: tuple[int, int]) -> Tensor:
         in_dim, out_dim = dims
@@ -52,9 +100,23 @@ class DatasetInitializerWhole:
 
         v_n, sn_inv, n = self._extract_pca_components(sample_data)
         randomizer = self._randomizer(out_dim, n)
-        weights = torch.linalg.multi_dot((v_n, sn_inv, randomizer.T))
-        weights = apply_non_negative_transform(weights, enabled=self.non_negative)
+        if self.mid_matrix:
+            weights = torch.linalg.multi_dot((v_n, sn_inv, randomizer.T))
+        else:
+            weights = v_n @ randomizer.T
+        weights = apply_non_negative_transform(
+            weights, enabled=self.non_negative, strategy=self.non_negative_strategy
+        )
         return weights
+
+    def configuration(self) -> dict:
+        return {
+            "type": type(self).__name__,
+            "init_ratio": self.init_ratio,
+            "non_negative": self.non_negative,
+            "non_negative_strategy": self.non_negative_strategy,
+            "mid_matrix": self.mid_matrix,
+        }
 
     def _sample_data(self, sample_size: int) -> Tensor:
         batch = next(
