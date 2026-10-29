@@ -52,22 +52,6 @@ def summarize_cycle(diag: dict) -> str:
     )
 
 
-def build_eval_log_path(result_root: Path, analysis) -> Path:
-    if analysis is not None:
-        return analysis.run_dir / "eval_log.txt"
-    run_dir = result_root / "gpu_rebuild_classifier_logs" / datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    run_dir.mkdir(parents=True, exist_ok=True)
-    return run_dir / "eval_log.txt"
-
-
-def build_train_log_path(result_root: Path, analysis) -> Path:
-    if analysis is not None:
-        return analysis.run_dir / "train_log.txt"
-    run_dir = result_root / "gpu_rebuild_classifier_logs" / datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    run_dir.mkdir(parents=True, exist_ok=True)
-    return run_dir / "train_log.txt"
-
-
 def build_run_dir(result_root: Path, run_name: str | None = None, append_timestamp: bool = True) -> Path:
     root = Path(result_root)
     base_name = run_name if run_name else "gpu_rebuild_classifier"
@@ -87,6 +71,7 @@ def run_classifier_train(
     result_root: Path,
     num_train_samples: int = 1000,
     num_test_samples: int = 1000,
+    hidden_dim: int = 1000,
     batch_size: int = 4,
     organize_interval_samples: int = 200,
     eval_interval_samples: int = 0,
@@ -129,21 +114,21 @@ def run_classifier_train(
 
     model = BiologicalClassifier(
         input_dim=784,
-        hidden_dim=2000,
+        hidden_dim=hidden_dim,
         output_dim=10,
         data_initializer=data_initializer,
         transform=flatten_to_vector,
         discrimination_config={
             "non_negative": True,
+            "optimizer_profile": "l1_sparse",
             "beta": 199 / 200,
             "lr_init": 0.99,
             "min_lr": 1e-3,
             "max_lr": 0.99,
             "optimizer_max_iters": 1000,
-            "optimizer_variance_stop_window": 20,
-            "optimizer_variance_stop_nonzero_ratio": 0.08,
-            "optimizer_variance_stop_initial_nonzero_ratio": 0.05,
-            "optimizer_variance_stop_initial_max_iters": 20000,
+            "optimizer_support_threshold": 0.08,
+            "optimizer_initial_support_threshold": 0.08,
+            "optimizer_initial_max_iters": 1000,
             "recover_step": 0.05,
             "recover_alpha": 0.2,
             "strength_gate_k": 1.0,
@@ -190,12 +175,17 @@ def run_classifier_train(
         f"[run_dir] {run_dir}",
         f"[train_subset] {num_train_samples}",
         f"[test_subset] {num_test_samples}",
+        f"[hidden_dim] {hidden_dim}",
         f"[batch_size] {batch_size}",
         f"[organize_interval_samples] {organize_interval_samples}",
         f"[eval_interval_samples] {eval_interval_samples}",
         f"[training_mode] {training_mode}",
         f"[init_mode] {init_mode}",
-        "[optimizer_profile] variance_turning_stop",
+        f"[optimizer_profile] {model.discrimination_layer.optimizer_profile}",
+        (
+            "[connection_ratio_schedule] "
+            f"{model.discrimination_layer.connection_ratio_schedule}"
+        ),
     ]
     if init_mode == "dataset":
         setup_lines.append(f"[init_ratio] {init_ratio}")
@@ -260,6 +250,7 @@ def parse_args():
     )
     parser.add_argument("--num-train-samples", type=int, default=1000)
     parser.add_argument("--num-test-samples", type=int, default=1000)
+    parser.add_argument("--hidden-dim", type=int, default=1000)
     parser.add_argument("--batch-size", type=int, default=4)
     parser.add_argument("--organize-interval-samples", type=int, default=200)
     parser.add_argument("--eval-interval-samples", type=int, default=0)
@@ -290,6 +281,7 @@ if __name__ == "__main__":
         result_root=Path(args.result_root),
         num_train_samples=args.num_train_samples,
         num_test_samples=args.num_test_samples,
+        hidden_dim=args.hidden_dim,
         batch_size=args.batch_size,
         organize_interval_samples=args.organize_interval_samples,
         eval_interval_samples=args.eval_interval_samples,

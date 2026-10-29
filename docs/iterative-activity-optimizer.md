@@ -1,5 +1,9 @@
 # Iterative Activity Optimizer Development
 
+> Historical baseline: this document describes the variance-based optimizer
+> released as `v0.2.0`. The current default is documented in
+> [L1-Normalized Sparse Lateral Optimizer](l1-sparse-optimizer.md).
+
 ## Purpose
 
 This document records why the DCNet activity optimizer was changed, how the
