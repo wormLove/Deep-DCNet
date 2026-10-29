@@ -4,7 +4,7 @@ import torch
 from torch import nn
 
 from core.activation_cache import ActivationCache
-from core.weight_monitor import WeightDriftMonitor
+from core.weight_monitor import EffectiveOperatorDriftMonitor
 from models.discrimination import DiscriminationLayer
 from models.readout import ReadoutHead
 
@@ -44,16 +44,38 @@ class BiologicalClassifier(nn.Module):
         )
         # Record resolved behavior, not only caller-supplied overrides, so saved
         # checkpoints remain reproducible if defaults change in a later release.
-        self.discrimination_config.update(
-            {
-                "non_negative": self.discrimination_layer.non_negative,
-                "non_negative_strategy": self.discrimination_layer.non_negative_strategy,
-                "weight_norm_p": self.discrimination_layer.weight_norm_p,
-                "optimizer_y0_divide_by_diagonal": (
-                    self.discrimination_layer.activity_optimizer.y0_divide_by_diagonal
-                ),
-            }
-        )
+        activity_optimizer = self.discrimination_layer.activity_optimizer
+        resolved_optimizer_config = {
+            "non_negative": self.discrimination_layer.non_negative,
+            "non_negative_strategy": self.discrimination_layer.non_negative_strategy,
+            "weight_norm_p": self.discrimination_layer.weight_norm_p,
+            "optimizer_profile": self.discrimination_layer.optimizer_profile,
+            "optimizer_max_iters": activity_optimizer.max_iters,
+            "optimizer_support_threshold": activity_optimizer.support_threshold,
+            "optimizer_initial_support_threshold": (
+                activity_optimizer.initial_support_threshold
+            ),
+            "optimizer_initial_max_iters": activity_optimizer.initial_max_iters,
+        }
+        if self.discrimination_layer.optimizer_profile == "l1_sparse":
+            self.discrimination_config.pop("optimizer_variance_stop_window", None)
+            self.discrimination_config.pop("optimizer_y0_divide_by_diagonal", None)
+            resolved_optimizer_config["connection_ratio_schedule"] = dict(
+                self.discrimination_layer.connection_ratio_schedule
+            )
+        else:
+            self.discrimination_config.pop("connection_ratio_schedule", None)
+            resolved_optimizer_config.update(
+                {
+                    "optimizer_variance_stop_window": (
+                        activity_optimizer.variance_stop_window
+                    ),
+                    "optimizer_y0_divide_by_diagonal": (
+                        activity_optimizer.y0_divide_by_diagonal
+                    ),
+                }
+            )
+        self.discrimination_config.update(resolved_optimizer_config)
         self.initializer_config = dict(self.discrimination_layer.initializer_config)
         self.output_dim = output_dim
         self.readout_head = ReadoutHead(hidden_dim, output_dim) if output_dim is not None else None
@@ -61,7 +83,12 @@ class BiologicalClassifier(nn.Module):
         for param in self.discrimination_layer.parameters():
             param.requires_grad = False
 
-        self.monitor_last_dl = WeightDriftMonitor(name="DL_Last")
+        self.monitor_last_dl = EffectiveOperatorDriftMonitor(
+            name="DL_Effective_Lateral",
+            tau_enter=0.01,
+            tau_exit=0.02,
+            k_enter=2,
+        )
         self.activation_cache = ActivationCache()
         self._review_enabled = False
         self._p = 0.0
@@ -101,12 +128,17 @@ class BiologicalClassifier(nn.Module):
     @torch.no_grad()
     def organize(self, unit_norm: bool = True) -> torch.Tensor:
         updated = self.discrimination_layer.organize(unit_norm=unit_norm)
+        self._update_review_stability()
+        return updated
+
+    @torch.no_grad()
+    def _update_review_stability(self) -> None:
+        operator = self.discrimination_layer.effective_lateral_matrix
         was_state = self.monitor_last_dl.state
-        self.monitor_last_dl.step(self.discrimination_layer.neuron_weights)
+        self.monitor_last_dl.step(operator)
         if was_state == "stable" and self.monitor_last_dl.state == "unstable":
             if self.activation_cache is not None:
                 self.activation_cache.clear()
-        return updated
 
     @torch.no_grad()
     def diagnostics(self) -> Dict[str, torch.Tensor]:
@@ -152,7 +184,7 @@ class BiologicalClassifier(nn.Module):
         state = {
             "discrimination_layer": self.discrimination_layer.state_dict(),
             "meta": {
-                "version": "gpu_rebuild_stage1",
+                "version": "l1_sparse_optimizer_v1",
                 "has_readout": self.readout_head is not None,
                 "discrimination_config": self.discrimination_config,
                 "initializer_config": self.initializer_config,
@@ -166,7 +198,7 @@ class BiologicalClassifier(nn.Module):
         state = torch.load(path, map_location=map_location)
         self.discrimination_layer.load_state_dict(state["discrimination_layer"])
         self.discrimination_layer.activity_optimizer.update_cached_gain(
-            self.discrimination_layer.neuron_correlation_matrix
+            self.discrimination_layer.effective_lateral_matrix
         )
         if self.readout_head is not None and "readout_head" in state:
             self.readout_head.load_state_dict(state["readout_head"])

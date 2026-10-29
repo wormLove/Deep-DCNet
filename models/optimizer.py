@@ -17,22 +17,22 @@ class IterativeActivityOptimizer(nn.Module):
     def __init__(
         self,
         max_iters: int = 1000,
+        support_threshold: float = 0.08,
+        initial_support_threshold: Optional[float] = 0.05,
+        initial_max_iters: int = 20000,
         variance_stop_window: int = 20,
-        variance_stop_nonzero_ratio: float = 0.08,
-        variance_stop_initial_nonzero_ratio: Optional[float] = 0.05,
-        variance_stop_initial_max_iters: int = 20000,
         y0_divide_by_diagonal: bool = False,
     ):
         super().__init__()
         self.max_iters = int(max_iters)
-        self.variance_stop_window = int(variance_stop_window)
-        self.variance_stop_nonzero_ratio = float(variance_stop_nonzero_ratio)
-        self.variance_stop_initial_nonzero_ratio = float(
-            variance_stop_nonzero_ratio
-            if variance_stop_initial_nonzero_ratio is None
-            else variance_stop_initial_nonzero_ratio
+        self.support_threshold = float(support_threshold)
+        self.initial_support_threshold = float(
+            support_threshold
+            if initial_support_threshold is None
+            else initial_support_threshold
         )
-        self.variance_stop_initial_max_iters = int(variance_stop_initial_max_iters)
+        self.initial_max_iters = int(initial_max_iters)
+        self.variance_stop_window = int(variance_stop_window)
         # y0 = x is not scale free: under the substitution y -> sy, C -> C/s^2,
         # x -> x/s the iteration is exactly equivariant and requires y0 -> s*y0,
         # but y0 = x supplies x/s instead, missing by s^2. L2 column normalization
@@ -43,38 +43,36 @@ class IterativeActivityOptimizer(nn.Module):
         # is only 1.0 to float32 rounding under L2 (906/1000 entries differ), so
         # enabling it perturbs archived L2 results by ~1e-5 relative.
         self.y0_divide_by_diagonal = bool(y0_divide_by_diagonal)
-        self._variance_stop_initial_phase = True
+        self._initial_phase = True
 
-        if self.max_iters < 1 or self.variance_stop_initial_max_iters < 1:
+        if self.max_iters < 1 or self.initial_max_iters < 1:
             raise ValueError("Iteration limits must be positive.")
         if self.variance_stop_window < 2:
             raise ValueError("variance_stop_window must be at least 2.")
-        if not 0.0 < self.variance_stop_nonzero_ratio <= 1.0:
-            raise ValueError("variance_stop_nonzero_ratio must be inside (0, 1].")
-        if not 0.0 < self.variance_stop_initial_nonzero_ratio <= 1.0:
-            raise ValueError(
-                "variance_stop_initial_nonzero_ratio must be inside (0, 1]."
-            )
+        if not 0.0 < self.support_threshold <= 1.0:
+            raise ValueError("support_threshold must be inside (0, 1].")
+        if not 0.0 < self.initial_support_threshold <= 1.0:
+            raise ValueError("initial_support_threshold must be inside (0, 1].")
 
         self.last_completed_iters = 0
-        self.last_variance_stop_triggered = False
-        self.last_variance_stop_resolved_count = 0
+        self.last_stop_triggered = False
+        self.last_stop_resolved_count = 0
         self.last_variance_turn_count = 0
-        self.last_variance_stop_completed_iters = torch.empty(0, dtype=torch.long)
+        self.last_completed_iters_per_case = torch.empty(0, dtype=torch.long)
         self.register_buffer("cached_max_eigenvalue", torch.tensor(1.0))
 
-    def set_variance_stop_initial_phase(self, enabled: bool) -> None:
-        self._variance_stop_initial_phase = bool(enabled)
+    def set_initial_phase(self, enabled: bool) -> None:
+        self._initial_phase = bool(enabled)
 
     def _iteration_limit(self) -> int:
-        if self._variance_stop_initial_phase:
-            return self.variance_stop_initial_max_iters
+        if self._initial_phase:
+            return self.initial_max_iters
         return self.max_iters
 
-    def _variance_nonzero_ratio_limit(self) -> float:
-        if self._variance_stop_initial_phase:
-            return self.variance_stop_initial_nonzero_ratio
-        return self.variance_stop_nonzero_ratio
+    def _support_limit(self) -> float:
+        if self._initial_phase:
+            return self.initial_support_threshold
+        return self.support_threshold
 
     @staticmethod
     def _linear_slopes(values: torch.Tensor) -> torch.Tensor:
@@ -106,7 +104,7 @@ class IterativeActivityOptimizer(nn.Module):
         newly_finished = (
             (~finished)
             & turn_seen
-            & (nonzero_ratio <= self._variance_nonzero_ratio_limit())
+            & (nonzero_ratio <= self._support_limit())
         )
         completed_per_case = torch.where(
             newly_finished,
@@ -185,8 +183,91 @@ class IterativeActivityOptimizer(nn.Module):
                 break
 
         self.last_completed_iters = completed_iters
-        self.last_variance_stop_triggered = bool(finished.all().item())
-        self.last_variance_stop_resolved_count = int(finished.sum().item())
+        self.last_stop_triggered = bool(finished.all().item())
+        self.last_stop_resolved_count = int(finished.sum().item())
         self.last_variance_turn_count = int(turn_seen.sum().item())
-        self.last_variance_stop_completed_iters = completed_per_case.detach().cpu().clone()
+        self.last_completed_iters_per_case = completed_per_case.detach().cpu().clone()
         return y
+
+
+class L1NormalizedActivityOptimizer(IterativeActivityOptimizer):
+    """Optimize a fixed-L1 pattern, then restore the mean raw drive.
+
+    The raw activity is L1-normalized once, and every projected optimizer state is
+    renormalized after ReLU. Before returning, the optimized pattern is rescaled so
+    its L1 mass equals the per-case mean raw activity. Variance is intentionally not
+    part of the stopping rule because fixed-total redistribution couples variance to
+    concentration.
+    """
+
+    @torch.no_grad()
+    def _compute_max_eigenvalue(self, matrix: torch.Tensor) -> torch.Tensor:
+        if matrix.dim() != 2 or matrix.shape[0] != matrix.shape[1]:
+            raise ValueError("matrix must be square.")
+
+        # Directed top-k masking makes the effective lateral operator asymmetric.
+        # Its safe scale is therefore the largest singular value rather than the
+        # largest eigenvalue used by the symmetric dense route.
+        svd_matrix = matrix.detach().double().cpu()
+        return torch.linalg.svdvals(svd_matrix)[0].clamp_min(1e-6).to(matrix.device)
+
+    @staticmethod
+    def _l1_normalize(
+        values: torch.Tensor,
+        fallback: Optional[torch.Tensor] = None,
+    ) -> torch.Tensor:
+        denominator = values.abs().sum(dim=1, keepdim=True)
+        normalized = values / denominator.clamp_min(1e-12)
+        if fallback is None:
+            return normalized
+        zero_rows = denominator.squeeze(1) <= 1e-12
+        return torch.where(zero_rows[:, None], fallback, normalized)
+
+    def forward(
+        self,
+        raw_activity: torch.Tensor,
+        neuron_correlation_matrix: torch.Tensor,
+    ) -> torch.Tensor:
+        if raw_activity.dim() != 2:
+            raise ValueError("raw_activity must be [batch, out_dim].")
+
+        correlation = neuron_correlation_matrix
+        mean_raw_drive = raw_activity.abs().mean(dim=1, keepdim=True)
+        normalized_raw = self._l1_normalize(raw_activity)
+        y = normalized_raw.clone()
+        step_size = 1.0 / self.cached_max_eigenvalue.to(
+            device=correlation.device,
+            dtype=correlation.dtype,
+        ).clamp_min(1e-6)
+
+        finished = torch.zeros(y.shape[0], dtype=torch.bool, device=y.device)
+        completed_per_case = torch.full(
+            (y.shape[0],), -1, dtype=torch.long, device=y.device
+        )
+        support_limit = self._support_limit()
+
+        for iteration in range(self._iteration_limit()):
+            update = normalized_raw - torch.matmul(y, correlation)
+            relu_candidate = F.relu(y + step_size * update)
+            projected = self._l1_normalize(relu_candidate, fallback=y)
+            y_next = torch.where(finished[:, None], y, projected)
+            completed_iters = iteration + 1
+
+            nonzero_ratio = (y_next > 0.0).to(y_next.dtype).mean(dim=1)
+            newly_finished = (~finished) & (nonzero_ratio <= support_limit)
+            completed_per_case = torch.where(
+                newly_finished,
+                torch.full_like(completed_per_case, completed_iters),
+                completed_per_case,
+            )
+            finished = finished | newly_finished
+            y = y_next
+            if bool(finished.all().item()):
+                break
+
+        self.last_completed_iters = completed_iters
+        self.last_stop_triggered = bool(finished.all().item())
+        self.last_stop_resolved_count = int(finished.sum().item())
+        self.last_variance_turn_count = 0
+        self.last_completed_iters_per_case = completed_per_case.detach().cpu().clone()
+        return y * mean_raw_drive

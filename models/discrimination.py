@@ -1,4 +1,4 @@
-from typing import Dict, Optional
+from typing import Dict, Mapping, Optional
 
 import torch
 import torch.nn.functional as F
@@ -8,7 +8,15 @@ from core.initializers import RandomInitializer
 from core.lr_policy import ProtectWithRecoveryLR
 from core.organizer import DiscriminationOrganizer
 from core.stats import NeuronStateTracker
-from models.optimizer import IterativeActivityOptimizer
+from models.optimizer import L1NormalizedActivityOptimizer, IterativeActivityOptimizer
+
+
+DEFAULT_CONNECTION_RATIO_SCHEDULE = {
+    0: 0.50,
+    4: 0.40,
+    5: 0.30,
+    6: 0.20,
+}
 
 
 class DiscriminationLayer(nn.Module):
@@ -31,12 +39,14 @@ class DiscriminationLayer(nn.Module):
         non_negative: bool = True,
         non_negative_strategy: str = "abs",
         weight_norm_p: int = 2,
+        optimizer_profile: str = "l1_sparse",
         optimizer_max_iters: int = 1000,
+        optimizer_support_threshold: float = 0.08,
+        optimizer_initial_support_threshold: float | None = None,
+        optimizer_initial_max_iters: int | None = None,
         optimizer_variance_stop_window: int = 20,
-        optimizer_variance_stop_nonzero_ratio: float = 0.08,
-        optimizer_variance_stop_initial_nonzero_ratio: float | None = 0.05,
-        optimizer_variance_stop_initial_max_iters: int = 20000,
         optimizer_y0_divide_by_diagonal: bool | None = None,
+        connection_ratio_schedule: Optional[Mapping[int, float]] = None,
         lr_init: float = 0.99,
         min_lr: float = 1e-3,
         max_lr: float = 0.99,
@@ -81,6 +91,35 @@ class DiscriminationLayer(nn.Module):
         if int(weight_norm_p) not in (1, 2):
             raise ValueError("weight_norm_p must be 1 or 2.")
         self.weight_norm_p = int(weight_norm_p)
+        if optimizer_profile not in {"variance_dense", "l1_sparse"}:
+            raise ValueError(
+                "optimizer_profile must be 'variance_dense' or 'l1_sparse'."
+            )
+        self.optimizer_profile = str(optimizer_profile)
+        if self.optimizer_profile == "variance_dense":
+            if connection_ratio_schedule is not None:
+                raise ValueError(
+                    "connection_ratio_schedule is only supported by the "
+                    "l1_sparse profile."
+                )
+            self.connection_ratio_schedule = None
+            if optimizer_initial_support_threshold is None:
+                optimizer_initial_support_threshold = 0.05
+            if optimizer_initial_max_iters is None:
+                optimizer_initial_max_iters = 20000
+        else:
+            schedule = (
+                DEFAULT_CONNECTION_RATIO_SCHEDULE
+                if connection_ratio_schedule is None
+                else connection_ratio_schedule
+            )
+            self.connection_ratio_schedule = self._validate_connection_schedule(
+                schedule
+            )
+            if optimizer_initial_support_threshold is None:
+                optimizer_initial_support_threshold = optimizer_support_threshold
+            if optimizer_initial_max_iters is None:
+                optimizer_initial_max_iters = optimizer_max_iters
 
         # The optimizer's starting point is tied to the norm, not chosen beside it.
         # Under p=2 diag(W^T W) == 1 and the two starting points are the same run, so
@@ -89,7 +128,14 @@ class DiscriminationLayer(nn.Module):
         # its own solution, the suppression step never crosses zero, relu never fires,
         # and the turning point was measured firing on 12 of 80 cases with 68 of them
         # exhausting the 20000-iteration budget. So p=1 does not get a choice here.
-        if self.weight_norm_p == 1:
+        if self.optimizer_profile == "l1_sparse":
+            if optimizer_y0_divide_by_diagonal:
+                raise ValueError(
+                    "optimizer_y0_divide_by_diagonal is not used by the "
+                    "l1_sparse profile."
+                )
+            optimizer_y0_divide_by_diagonal = False
+        elif self.weight_norm_p == 1:
             optimizer_y0_divide_by_diagonal = True
         else:
             optimizer_y0_divide_by_diagonal = bool(optimizer_y0_divide_by_diagonal)
@@ -117,14 +163,17 @@ class DiscriminationLayer(nn.Module):
         weights = F.normalize(weights, p=self.weight_norm_p, dim=0)
         self.neuron_weights = nn.Parameter(weights)
 
-        self.activity_optimizer = IterativeActivityOptimizer(
+        optimizer_type = (
+            L1NormalizedActivityOptimizer
+            if self.optimizer_profile == "l1_sparse"
+            else IterativeActivityOptimizer
+        )
+        self.activity_optimizer = optimizer_type(
             max_iters=optimizer_max_iters,
+            support_threshold=optimizer_support_threshold,
+            initial_support_threshold=optimizer_initial_support_threshold,
+            initial_max_iters=optimizer_initial_max_iters,
             variance_stop_window=optimizer_variance_stop_window,
-            variance_stop_nonzero_ratio=optimizer_variance_stop_nonzero_ratio,
-            variance_stop_initial_nonzero_ratio=(
-                optimizer_variance_stop_initial_nonzero_ratio
-            ),
-            variance_stop_initial_max_iters=optimizer_variance_stop_initial_max_iters,
             y0_divide_by_diagonal=optimizer_y0_divide_by_diagonal,
         )
         self.activation = nn.ReLU()
@@ -168,8 +217,84 @@ class DiscriminationLayer(nn.Module):
         self.register_buffer("last_cycle_sample_count", torch.tensor(0, dtype=torch.long))
         with torch.no_grad():
             corr0 = torch.matmul(self.neuron_weights.detach().transpose(0, 1), self.neuron_weights.detach())
-        self.register_buffer("neuron_correlation_matrix", corr0)
-        self.activity_optimizer.update_cached_gain(self.neuron_correlation_matrix)
+        self.register_buffer("organize_count", torch.tensor(0, dtype=torch.long))
+        self.register_buffer("neuron_correlation_matrix", corr0.clone())
+        self.register_buffer(
+            "lateral_connection_mask", torch.ones_like(corr0, dtype=torch.bool)
+        )
+        self.register_buffer("effective_lateral_matrix", corr0.clone())
+        self.register_buffer(
+            "current_connection_ratio", torch.tensor(1.0, dtype=corr0.dtype)
+        )
+        self._refresh_lateral_operator(corr0)
+
+    @staticmethod
+    def _validate_connection_schedule(
+        schedule: Mapping[int, float],
+    ) -> Dict[int, float]:
+        if not schedule:
+            raise ValueError("connection_ratio_schedule cannot be empty.")
+
+        normalized = {int(start): float(ratio) for start, ratio in schedule.items()}
+        if 0 not in normalized:
+            raise ValueError("connection_ratio_schedule must start at organize 0.")
+        if any(start < 0 for start in normalized):
+            raise ValueError("connection schedule starts must be non-negative.")
+        if any(not 0.0 < ratio <= 1.0 for ratio in normalized.values()):
+            raise ValueError("connection ratios must be inside (0, 1].")
+        return dict(sorted(normalized.items()))
+
+    def connection_ratio_for_organize(self, organize_count: int) -> float:
+        if self.connection_ratio_schedule is None:
+            return 1.0
+        active_start = max(
+            start for start in self.connection_ratio_schedule if start <= organize_count
+        )
+        return self.connection_ratio_schedule[active_start]
+
+    @torch.no_grad()
+    def _build_lateral_mask(
+        self,
+        dense_correlation: torch.Tensor,
+        connection_ratio: float,
+    ) -> torch.Tensor:
+        neuron_count = dense_correlation.shape[0]
+        mask = torch.zeros_like(dense_correlation, dtype=torch.bool)
+        if neuron_count > 1:
+            top_k = min(
+                neuron_count - 1,
+                max(1, round(connection_ratio * neuron_count)),
+            )
+            similarity = dense_correlation.clone()
+            similarity.fill_diagonal_(-torch.inf)
+            neighbor_indices = torch.topk(similarity, k=top_k, dim=0).indices
+            target_indices = torch.arange(
+                neuron_count, device=dense_correlation.device
+            ).expand(top_k, neuron_count)
+            mask[neighbor_indices, target_indices] = True
+        mask.fill_diagonal_(True)
+        return mask
+
+    @torch.no_grad()
+    def _refresh_lateral_operator(
+        self,
+        dense_correlation: Optional[torch.Tensor] = None,
+    ) -> None:
+        if dense_correlation is None:
+            dense_correlation = self.compute_neuron_correlation_matrix()
+        self.neuron_correlation_matrix.copy_(dense_correlation)
+
+        ratio = self.connection_ratio_for_organize(int(self.organize_count.item()))
+        if self.optimizer_profile == "l1_sparse":
+            mask = self._build_lateral_mask(dense_correlation, ratio)
+        else:
+            mask = torch.ones_like(dense_correlation, dtype=torch.bool)
+        effective = dense_correlation * mask.to(dense_correlation.dtype)
+
+        self.lateral_connection_mask.copy_(mask)
+        self.effective_lateral_matrix.copy_(effective)
+        self.current_connection_ratio.fill_(ratio)
+        self.activity_optimizer.update_cached_gain(self.effective_lateral_matrix)
 
     def compute_neuron_correlation_matrix(self) -> torch.Tensor:
         with torch.no_grad():
@@ -181,9 +306,9 @@ class DiscriminationLayer(nn.Module):
             raise ValueError(f"input must be [batch, {self.in_dim}]")
 
         weights = self.neuron_weights
-        corr = self.neuron_correlation_matrix
+        corr = self.effective_lateral_matrix
         act_raw = torch.matmul(x, weights)
-        self.activity_optimizer.set_variance_stop_initial_phase(
+        self.activity_optimizer.set_initial_phase(
             not bool(self.lr_ready.item())
         )
         act_opt = self.activity_optimizer(act_raw, corr)
@@ -199,6 +324,8 @@ class DiscriminationLayer(nn.Module):
                 "act_opt": act_opt,
                 "act": act,
                 "correlation_matrix": corr,
+                "dense_correlation_matrix": self.neuron_correlation_matrix,
+                "lateral_connection_mask": self.lateral_connection_mask,
             }
         return act
 
@@ -263,8 +390,8 @@ class DiscriminationLayer(nn.Module):
             updated_weights = F.normalize(updated_weights, p=self.weight_norm_p, dim=0)
 
         self.neuron_weights.data.copy_(updated_weights)
-        self.neuron_correlation_matrix.copy_(self.compute_neuron_correlation_matrix())
-        self.activity_optimizer.update_cached_gain(self.neuron_correlation_matrix)
+        self.organize_count.add_(1)
+        self._refresh_lateral_operator()
         return updated_weights
 
     @torch.no_grad()
@@ -276,6 +403,8 @@ class DiscriminationLayer(nn.Module):
         self.organizer.set_learning_rates(torch.full_like(self.organizer.lr_vec, self.organizer.default_lr))
         self.last_lr_vec.copy_(self.organizer.lr_vec)
         self.lr_ready.fill_(False)
+        self.organize_count.zero_()
+        self._refresh_lateral_operator()
 
     @torch.no_grad()
     def diagnostics(self) -> Dict[str, torch.Tensor]:
@@ -290,4 +419,6 @@ class DiscriminationLayer(nn.Module):
             "cycle_weighted_increment": self.last_cycle_weighted_increment.detach().clone(),
             "cycle_sample_count": self.last_cycle_sample_count.detach().clone(),
             "zero_norm_rows_total": self.organizer.zero_norm_rows_total.detach().clone(),
+            "organize_count": self.organize_count.detach().clone(),
+            "connection_ratio": self.current_connection_ratio.detach().clone(),
         }

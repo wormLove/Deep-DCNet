@@ -34,6 +34,8 @@ class AnalysisEngine:
         self.hebb_dir = ensure_dir(self.run_dir / "potential_hebb")
         self.lr_dir = ensure_dir(self.run_dir / "lr_vec")
         self.corr_dir = ensure_dir(self.run_dir / "correlation")
+        self.mask_dir = ensure_dir(self.run_dir / "lateral_mask")
+        self.operator_dir = ensure_dir(self.run_dir / "effective_lateral_operator")
         self.ckpt_dir = ensure_dir(self.run_dir / "checkpoints")
         self.image_hw = image_hw
         self.grid_rows = int(grid_rows)
@@ -69,6 +71,17 @@ class AnalysisEngine:
         save_heatmap(
             dl.neuron_correlation_matrix.detach(),
             self.corr_dir / f"corr_step_{step:04d}_heatmap.png",
+            cmap="viridis",
+            percentile_clip=99.0,
+        )
+        save_heatmap(
+            dl.lateral_connection_mask.detach().to(dl.neuron_weights.dtype),
+            self.mask_dir / f"mask_step_{step:04d}_heatmap.png",
+            cmap="gray",
+        )
+        save_heatmap(
+            dl.effective_lateral_matrix.detach(),
+            self.operator_dir / f"operator_step_{step:04d}_heatmap.png",
             cmap="viridis",
             percentile_clip=99.0,
         )

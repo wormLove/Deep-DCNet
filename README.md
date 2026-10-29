@@ -13,7 +13,7 @@ Instead of relying on standard end-to-end backpropagation through the full netwo
 
 The current GPU rebuild preserves the core ideas of the original CPU research prototype while reformulating the training process for mini-batch computation. In particular, it includes:
 
-- iterative activity optimization with lateral competition and variance-based stopping
+- L1-normalized activity optimization with scheduled sparse lateral competition
 - Hebbian / Anti-Hebbian potential accumulation
 - neuron-level memory statistics and nonlinear learning-rate recovery
 - review-based readout reinforcement
@@ -31,7 +31,8 @@ This repository focuses on the single-target GPU baseline of DCNet and serves as
 
 - Biologically inspired representation learning for continual adaptation
 - Local learning in the discrimination layer, without end-to-end backpropagation through the full model
-- Iterative activity optimization with lateral competition and emergent sparse activity
+- L1-normalized activity redistribution with directed top-k lateral competition
+- Configurable connection-ratio schedules with an 8% active-support stop
 - Hebbian / Anti-Hebbian organization with organize-cycle updates
 - Per-neuron learning-rate protection and nonlinear recovery based on memory statistics
 - Optional review-based readout training for replay-style reinforcement
@@ -98,8 +99,11 @@ The current training scripts use `torchvision.datasets.MNIST`.
 
 ## Usage
 
-The optimizer design, research path, final equations, and validation results are
-documented in [Iterative Activity Optimizer Development](docs/iterative-activity-optimizer.md).
+The current optimizer design, sparse lateral schedule, and validation results are
+documented in [L1-Normalized Sparse Lateral Optimizer](docs/l1-sparse-optimizer.md).
+
+The preceding variance-based optimizer and its development path remain documented
+in [Iterative Activity Optimizer Development](docs/iterative-activity-optimizer.md).
 
 The initialization choices, normalization audit, and retained experimental routes
 are documented in [Initialization Pipeline Audit](docs/initialization-pipeline-audit.md).
@@ -111,6 +115,9 @@ Classifier training with review:
 ```bash
 python training/train_classifier.py --device cuda --training-mode review
 ```
+
+The validated default uses 1,000 hidden neurons. Override it when needed with
+`--hidden-dim`.
 
 Classifier training without review:
 

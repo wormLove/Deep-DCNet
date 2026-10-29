@@ -63,6 +63,7 @@ def run_smoke_train(
     data_root: Path,
     result_root: Path,
     num_samples: int = 1000,
+    hidden_dim: int = 1000,
     batch_size: int = 4,
     organize_interval_samples: int = 200,
     enable_analysis: bool = True,
@@ -88,20 +89,20 @@ def run_smoke_train(
 
     model = BiologicalClassifier(
         input_dim=784,
-        hidden_dim=2000,
+        hidden_dim=hidden_dim,
         data_initializer=data_initializer,
         transform=flatten_to_vector,
         discrimination_config={
             "non_negative": True,
+            "optimizer_profile": "l1_sparse",
             "beta": 199 / 200,
             "lr_init": 0.99,
             "min_lr": 1e-3,
             "max_lr": 0.99,
             "optimizer_max_iters": 1000,
-            "optimizer_variance_stop_window": 20,
-            "optimizer_variance_stop_nonzero_ratio": 0.08,
-            "optimizer_variance_stop_initial_nonzero_ratio": 0.05,
-            "optimizer_variance_stop_initial_max_iters": 20000,
+            "optimizer_support_threshold": 0.08,
+            "optimizer_initial_support_threshold": 0.08,
+            "optimizer_initial_max_iters": 1000,
             "recover_step": 0.05,
             "recover_alpha": 0.2,
             "strength_gate_k": 1.0,
@@ -128,10 +129,15 @@ def run_smoke_train(
 
     print(f"[device] {device}")
     print(f"[dataset] MNIST train subset = {num_samples} samples")
+    print(f"[hidden_dim] {hidden_dim}")
     print(f"[batch_size] {batch_size}")
     print(f"[organize_interval_samples] {organize_interval_samples}")
     print(f"[init_mode] {init_mode}")
-    print("[optimizer_profile] variance_turning_stop")
+    print(f"[optimizer_profile] {model.discrimination_layer.optimizer_profile}")
+    print(
+        "[connection_ratio_schedule] "
+        f"{model.discrimination_layer.connection_ratio_schedule}"
+    )
     if init_mode == "dataset":
         print(f"[init_ratio] {init_ratio}")
         print(f"[init_dataset_scope] {init_dataset_scope}")
@@ -217,6 +223,7 @@ def parse_args():
     parser.add_argument("--data-root", type=str, default=str(Path(BASE_DIR) / "DATA"))
     parser.add_argument("--result-root", type=str, default=str(Path(BASE_DIR) / "RESULT"))
     parser.add_argument("--num-samples", type=int, default=1000)
+    parser.add_argument("--hidden-dim", type=int, default=1000)
     parser.add_argument("--batch-size", type=int, default=4)
     parser.add_argument("--organize-interval-samples", type=int, default=200)
     parser.add_argument("--disable-analysis", action="store_true")
@@ -236,6 +243,7 @@ if __name__ == "__main__":
         data_root=Path(args.data_root),
         result_root=Path(args.result_root),
         num_samples=args.num_samples,
+        hidden_dim=args.hidden_dim,
         batch_size=args.batch_size,
         organize_interval_samples=args.organize_interval_samples,
         enable_analysis=not args.disable_analysis,
