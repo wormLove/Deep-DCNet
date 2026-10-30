@@ -79,7 +79,7 @@ def run_classifier_train(
     enable_checkpoints: bool = True,
     debug_stats: bool = False,
     training_mode: str = "plain",
-    init_mode: str = "random",
+    init_mode: str = "dataset",
     init_ratio: float = 0.25,
     init_dataset_scope: str = "full",
     review_per_sample_max: float = 10.0,
@@ -258,7 +258,7 @@ def parse_args():
     parser.add_argument("--disable-checkpoints", action="store_true")
     parser.add_argument("--debug-stats", action="store_true")
     parser.add_argument("--training-mode", type=str, default="plain", choices=["plain", "review"])
-    parser.add_argument("--init-mode", type=str, default="random", choices=["random", "dataset"])
+    parser.add_argument("--init-mode", type=str, default="dataset", choices=["random", "dataset"])
     parser.add_argument("--init-ratio", type=float, default=0.25)
     parser.add_argument("--init-dataset-scope", type=str, default="full", choices=["full", "subset"])
     parser.add_argument("--review-per-sample-max", type=float, default=10.0)

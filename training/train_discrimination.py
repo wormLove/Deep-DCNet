@@ -69,7 +69,7 @@ def run_smoke_train(
     enable_analysis: bool = True,
     enable_checkpoints: bool = True,
     debug_stats: bool = False,
-    init_mode: str = "random",
+    init_mode: str = "dataset",
     init_ratio: float = 0.25,
     init_dataset_scope: str = "full",
 ) -> None:
@@ -229,7 +229,7 @@ def parse_args():
     parser.add_argument("--disable-analysis", action="store_true")
     parser.add_argument("--disable-checkpoints", action="store_true")
     parser.add_argument("--debug-stats", action="store_true")
-    parser.add_argument("--init-mode", type=str, default="random", choices=["random", "dataset"])
+    parser.add_argument("--init-mode", type=str, default="dataset", choices=["random", "dataset"])
     parser.add_argument("--init-ratio", type=float, default=0.25)
     parser.add_argument("--init-dataset-scope", type=str, default="full", choices=["full", "subset"])
     return parser.parse_args()
