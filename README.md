@@ -143,7 +143,7 @@ python training/train_discrimination.py --device cuda
 
 - `--device`: choose the execution device (`cpu`, `cuda`, or `mps`)
 - `--training-mode`: choose classifier training with or without review (`plain` or `review`)
-- `--init-mode`: choose random or dataset-based initialization (`random` or `dataset`)
+- `--init-mode`: choose random or dataset-based (default) initialization (`random` or `dataset`)
 - `--batch-size`: set the mini-batch size
 - `--organize-interval-samples`: set how many samples are processed between organize updates
 - `--eval-interval-samples`: set how many samples are processed between evaluation passes
