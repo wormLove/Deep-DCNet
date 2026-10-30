@@ -56,6 +56,7 @@ class BiologicalClassifier(nn.Module):
                 activity_optimizer.initial_support_threshold
             ),
             "optimizer_initial_max_iters": activity_optimizer.initial_max_iters,
+            "organize_update_scope": self.discrimination_layer.organize_update_scope,
         }
         if self.discrimination_layer.optimizer_profile == "l1_sparse":
             self.discrimination_config.pop("optimizer_variance_stop_window", None)

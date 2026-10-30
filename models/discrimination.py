@@ -25,7 +25,8 @@ class DiscriminationLayer(nn.Module):
     - neuron context weights
     - iterative activity optimization
     - sparse activation
-    - Hebbian / Anti-Hebbian organization
+    - Hebbian / Anti-Hebbian organization, applied by default only to neurons
+      that fired during the current cycle
     - neuron-level strength tracking and learning-rate control
 
     This intentionally excludes readout, review, and context forgetting.
@@ -47,6 +48,7 @@ class DiscriminationLayer(nn.Module):
         optimizer_variance_stop_window: int = 20,
         optimizer_y0_divide_by_diagonal: bool | None = None,
         connection_ratio_schedule: Optional[Mapping[int, float]] = None,
+        organize_update_scope: str = "activated",
         lr_init: float = 0.99,
         min_lr: float = 1e-3,
         max_lr: float = 0.99,
@@ -139,6 +141,16 @@ class DiscriminationLayer(nn.Module):
             optimizer_y0_divide_by_diagonal = True
         else:
             optimizer_y0_divide_by_diagonal = bool(optimizer_y0_divide_by_diagonal)
+        # Which neurons organize() may change. "activated" consolidates only neurons
+        # that fired during the current cycle: a neuron that received no stimulus is
+        # left exactly as it was, and its potential is kept (not consumed) so it is
+        # consolidated the next time the neuron fires. "global" is the previous
+        # behaviour, where every neuron is updated from whatever potential it holds,
+        # including a silent neuron pulled by stale evidence or by its neighbours'
+        # changed contexts through the anti-Hebbian term.
+        if organize_update_scope not in {"activated", "global"}:
+            raise ValueError("organize_update_scope must be 'activated' or 'global'.")
+        self.organize_update_scope = str(organize_update_scope)
         self.strength_decay_start = int(strength_decay_start)
         self.strength_decay_power = float(strength_decay_power)
         self.strength_decay_scale = float(strength_decay_scale)
@@ -215,6 +227,12 @@ class DiscriminationLayer(nn.Module):
         self.register_buffer("last_cycle_total_increment", torch.zeros(self.out_dim, dtype=torch.long))
         self.register_buffer("last_cycle_weighted_increment", torch.zeros(self.out_dim))
         self.register_buffer("last_cycle_sample_count", torch.tensor(0, dtype=torch.long))
+        # Diagnostic only, so checkpoints written before this field existed still load.
+        self.register_buffer(
+            "last_update_mask",
+            torch.zeros(self.out_dim, dtype=torch.bool),
+            persistent=False,
+        )
         with torch.no_grad():
             corr0 = torch.matmul(self.neuron_weights.detach().transpose(0, 1), self.neuron_weights.detach())
         self.register_buffer("organize_count", torch.tensor(0, dtype=torch.long))
@@ -371,6 +389,7 @@ class DiscriminationLayer(nn.Module):
     @torch.no_grad()
     def organize(self, unit_norm: bool = True) -> torch.Tensor:
         self.refresh_learning_rates()
+        previous_weights = self.neuron_weights.data.clone()
         updated_weights = self.organizer.organize(self.neuron_weights.data)
 
         if self.non_negative:
@@ -389,6 +408,15 @@ class DiscriminationLayer(nn.Module):
         if unit_norm:
             updated_weights = F.normalize(updated_weights, p=self.weight_norm_p, dim=0)
 
+        # Restored after normalization so skipped columns stay bit-identical rather
+        # than passing through a renormalization that only changes rounding.
+        if self.organize_update_scope == "activated":
+            update_mask = ~self.last_inactive_mask
+            updated_weights[:, ~update_mask] = previous_weights[:, ~update_mask]
+        else:
+            update_mask = torch.ones_like(self.last_inactive_mask)
+        self.last_update_mask.copy_(update_mask)
+
         self.neuron_weights.data.copy_(updated_weights)
         self.organize_count.add_(1)
         self._refresh_lateral_operator()
@@ -402,6 +430,7 @@ class DiscriminationLayer(nn.Module):
         self.organizer.beta_accum.fill_(self.organizer.beta)
         self.organizer.set_learning_rates(torch.full_like(self.organizer.lr_vec, self.organizer.default_lr))
         self.last_lr_vec.copy_(self.organizer.lr_vec)
+        self.last_update_mask.zero_()
         self.lr_ready.fill_(False)
         self.organize_count.zero_()
         self._refresh_lateral_operator()
@@ -418,6 +447,7 @@ class DiscriminationLayer(nn.Module):
             "cycle_total_increment": self.last_cycle_total_increment.detach().clone(),
             "cycle_weighted_increment": self.last_cycle_weighted_increment.detach().clone(),
             "cycle_sample_count": self.last_cycle_sample_count.detach().clone(),
+            "update_mask": self.last_update_mask.detach().clone(),
             "zero_norm_rows_total": self.organizer.zero_norm_rows_total.detach().clone(),
             "organize_count": self.organize_count.detach().clone(),
             "connection_ratio": self.current_connection_ratio.detach().clone(),
