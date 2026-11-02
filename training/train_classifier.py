@@ -1,4 +1,5 @@
 import argparse
+import time
 from datetime import datetime
 from pathlib import Path
 from typing import Optional, Tuple
@@ -13,14 +14,16 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from analysis.analysis_engine import AnalysisEngine
+from analysis.analysis_engine import ANALYSIS_LEVELS, AnalysisEngine
+from analysis.metrics_log import MetricsLog
 from core.checkpointing import save_layer
 from core.initializers import DatasetInitializerWhole
 from architectures.single_layer import BiologicalClassifier
 from modules.classifier_heads import TraditionalMLPHead
 from modules.readout import ReadoutHead
 from training.datasets import DATASET_CHOICES, get_dataset
-from training.run_config import write_run_config
+from training.provenance import reset_peak_gpu_mem, run_provenance, set_seed
+from training.run_config import write_final_eval, write_run_config
 from training.training_engines import evaluate_classifier, train_classifier_plain, train_classifier_with_review
 
 BASE_DIR = str(PROJECT_ROOT)
@@ -161,6 +164,8 @@ def run_classifier_train(
     head_dropout: float = 0.2,
     checkpoint_name: Optional[str] = None,
     checkpoints_dir: Optional[Path] = None,
+    seed: Optional[int] = None,
+    analysis_level: str = "lean",
 ) -> float:
     """
     Runs one classifier training experiment on `dataset` (any name in
@@ -177,6 +182,11 @@ def run_classifier_train(
 
     Returns the final test accuracy (%).
     """
+    run_start = time.time()
+    if seed is not None:
+        set_seed(seed)
+    reset_peak_gpu_mem(device)
+
     spec, train_dataset, test_dataset = get_dataset(dataset, data_root=data_root)
 
     train_subset = make_subset(train_dataset, num_train_samples)
@@ -226,7 +236,8 @@ def run_classifier_train(
         trainable_params += list(model.integration_layer.parameters())
     optimizer = optim.Adam(trainable_params, lr=1e-3)
 
-    analysis = AnalysisEngine(base_dir=result_root, run_name=run_name, image_hw=spec.patch_hw) if enable_analysis else None
+    analysis = AnalysisEngine(base_dir=result_root, run_name=run_name, image_hw=spec.patch_hw,
+                              level=analysis_level) if enable_analysis else None
     eval_log_path = build_eval_log_path(result_root, analysis) if save_eval_log else None
     train_log_path = build_train_log_path(result_root, analysis) if save_train_log else None
     if analysis is not None:
@@ -250,9 +261,26 @@ def run_classifier_train(
             "batch_size": batch_size,
             "organize_interval_samples": organize_interval_samples,
             "run_name": run_name,
+            "seed": seed,
+            "setup": "S0",
+            "protocol": training_mode,
+            "eval_interval_samples": eval_interval_samples,
+            "review_per_sample_max": review_per_sample_max,
+            "review_pmax": review_pmax,
+            "review_delta": review_delta,
+            "review_cache_size": review_cache_size,
+            "review_error_repeat": review_error_repeat,
+            "init_ratio": init_ratio,
+            "init_dataset_scope": init_dataset_scope,
+            "analysis_level": analysis_level,
+            **run_provenance(device),
         })
+    metrics_log = MetricsLog(analysis.run_dir) if analysis is not None else None
+    best = {"acc": None, "samples": None}
 
     def eval_logger(tag: str, step: int, samples: int, acc: float) -> None:
+        if best["acc"] is None or acc > best["acc"]:
+            best["acc"], best["samples"] = acc, samples
         if eval_log_path is None:
             return
         with open(eval_log_path, "a", encoding="utf-8") as f:
@@ -331,11 +359,14 @@ def run_classifier_train(
         quiet_train=quiet_train,
         eval_logger=eval_logger,
         train_logger=train_logger,
+        metrics_log=metrics_log,
     )
     if training_mode == "review":
         engine_kwargs["review_per_sample_max"] = review_per_sample_max
         engine_kwargs["review_error_repeat"] = review_error_repeat
+    train_start = time.time()
     final_acc = engine(**engine_kwargs)
+    train_wall_sec = time.time() - train_start
 
     if checkpoint_name is not None:
         ckpt_dir = str(checkpoints_dir) if checkpoints_dir is not None else str(Path(BASE_DIR) / "checkpoints")
@@ -355,6 +386,18 @@ def run_classifier_train(
         if not quiet_train:
             print(msg)
         train_logger(msg)
+
+    if analysis is not None:
+        write_final_eval(
+            analysis.run_dir,
+            final_acc=final_acc,
+            best_acc=best["acc"],
+            best_acc_samples=best["samples"],
+            n_organizes=len(metrics_log),
+            train_wall_sec=train_wall_sec,
+            total_wall_sec=time.time() - run_start,
+            device=device,
+        )
 
     return final_acc
 
@@ -435,6 +478,11 @@ def parse_args():
              "later experiment can load it as a frozen feature extractor via "
              "core.checkpointing.load_layer() without retraining.",
     )
+    parser.add_argument("--seed", type=int, default=None,
+                        help="Seed torch/random/numpy at the start of the run (default: unseeded, as before).")
+    parser.add_argument("--analysis-level", type=str, default="lean", choices=list(ANALYSIS_LEVELS),
+                        help="lean (default): final checkpoint + final weight grid + metrics.csv. "
+                             "full: also every-step/every-organize PNGs and checkpoints (GBs; debugging).")
     return parser.parse_args()
 
 
@@ -474,4 +522,6 @@ if __name__ == "__main__":
         head_hidden_dims=(args.head_hidden_dim,),
         head_dropout=args.head_dropout,
         checkpoint_name=args.checkpoint_name,
+        seed=args.seed,
+        analysis_level=args.analysis_level,
     )

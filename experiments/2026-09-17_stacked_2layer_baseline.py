@@ -31,8 +31,6 @@ from pathlib import Path
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-import torch
-
 from _configs import parse_args, run_size
 from training.train_classifier import select_device
 from training.train_classifier_stacked import run_classifier_train_stacked
@@ -44,7 +42,6 @@ CHECKPOINT_NAME = "stacked_2layer_h2000_readout"
 def main():
     args = parse_args("Stacked 2-layer DCNet baseline (review mode, linear readout head).")
     size, run_suffix, ckpt_suffix = run_size(args)
-    torch.manual_seed(args.seed)
     device = select_device(args.device)
     final_acc = run_classifier_train_stacked(
         device=device,
@@ -57,6 +54,8 @@ def main():
         review_pmax=0.8,
         head="readout",
         checkpoint_name=CHECKPOINT_NAME + ckpt_suffix,
+        seed=args.seed,
+        analysis_level=args.analysis_level,
         **size,
     )
     print(f"\n[stacked_2layer_baseline{run_suffix}] final acc={final_acc:.2f}%")

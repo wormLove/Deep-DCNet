@@ -40,8 +40,6 @@ from pathlib import Path
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-import torch
-
 from _configs import parse_args, run_size
 from training.train_classifier import run_classifier_train, select_device
 
@@ -52,7 +50,6 @@ CHECKPOINT_NAME = "point5_h2000_traditional_mlp"
 def main():
     args = parse_args("Point #5: traditional MLP head on the same Hebbian features.")
     size, run_suffix, ckpt_suffix = run_size(args)
-    torch.manual_seed(args.seed)
     device = select_device(args.device)
     final_acc = run_classifier_train(
         device=device,
@@ -66,10 +63,12 @@ def main():
         head_hidden_dims=(256,),
         head_dropout=0.2,
         checkpoint_name=CHECKPOINT_NAME + ckpt_suffix,
+        seed=args.seed,
+        analysis_level=args.analysis_level,
         **size,
     )
     print(f"\n[point5_traditional_head{run_suffix}] final acc={final_acc:.2f}%")
-    print("[point5_traditional_head] compare against 2026-09-17_single_layer_baseline.py run at the "
+    print(f"[point5_traditional_head{run_suffix}] compare against 2026-09-17_single_layer_baseline.py run at the "
           "same size/seed - identical in everything except the head.")
 
 

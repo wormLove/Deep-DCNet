@@ -8,15 +8,13 @@ baselines use, chosen by flags, so results line up 1:1 with the MNIST runs:
     --arch single_layer --head traditional_mlp  (== 2026-09-17_point5_traditional_head)
     --arch stacked      --head readout          (== 2026-09-17_stacked_2layer_baseline)
 
-run_name = point6_<dataset>_<arch>_<head>, so the point #4 sweep can later
-be pointed at any subset of them with --runs.
+run_name = point6_<dataset>_<arch>_<head>_s<seed>[_smoke], so the point #4
+sweep can later be pointed at any subset of them with --runs.
 """
 import argparse
 from pathlib import Path
 
-import torch
-
-from _configs import FULL, SEED, SMOKE
+from _configs import ANALYSIS_LEVELS, FULL, SEED, SMOKE, seed_tag
 from training.train_classifier import run_classifier_train, select_device
 from training.train_classifier_stacked import run_classifier_train_stacked
 
@@ -31,14 +29,16 @@ def parse_point6_args(dataset: str):
     parser.add_argument("--smoke", action="store_true", help="tiny CPU-friendly run that only checks the code paths work")
     parser.add_argument("--device", default="auto", choices=["auto", "cpu", "cuda", "mps"])
     parser.add_argument("--seed", type=int, default=SEED)
+    parser.add_argument("--analysis-level", default="lean", choices=list(ANALYSIS_LEVELS),
+                        help="lean (default): final checkpoint + weight grid + metrics.csv; "
+                             "full: every-step/every-organize PNGs + checkpoints (GBs, debugging only)")
     return parser.parse_args()
 
 
 def run_point6(dataset: str, args) -> float:
     size = dict(SMOKE if args.smoke else FULL)
     suffix = "_smoke" if args.smoke else ""
-    run_name = f"point6_{dataset}_{args.arch}_{args.head}{suffix}"
-    torch.manual_seed(args.seed)
+    run_name = f"point6_{dataset}_{args.arch}_{args.head}{seed_tag(args)}{suffix}"
     device = select_device(args.device)
     common = dict(
         device=device,
@@ -50,6 +50,8 @@ def run_point6(dataset: str, args) -> float:
         head_hidden_dims=(256,),
         head_dropout=0.2,
         checkpoint_name=run_name,
+        seed=args.seed,
+        analysis_level=args.analysis_level,
         **size,
     )
     if args.arch == "single_layer":

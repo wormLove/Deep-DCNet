@@ -13,6 +13,12 @@ named checkpoint save). Its accuracy is meaningless - never report it.
 
 Every script takes:   python experiments/<script>.py            # FULL
                       python experiments/<script>.py --smoke    # SMOKE
+plus --seed N (default SEED) and --analysis-level lean|full (default lean).
+
+Run names carry the seed: <name>_s<seed>[_smoke], e.g.
+single_layer_baseline_s33, so the 3 seeds of one configuration get
+separate RESULT/<run_name>/ folders (and can run in parallel) and
+tools/build_results_index.py can group them by stripping _s<seed>.
 """
 import argparse
 
@@ -36,6 +42,8 @@ SMOKE = dict(
 # start from the same random discrimination-layer init and data order.
 SEED = 33
 
+ANALYSIS_LEVELS = ("lean", "full")  # mirrors analysis.analysis_engine.ANALYSIS_LEVELS
+
 
 def parse_args(description: str):
     parser = argparse.ArgumentParser(description=description)
@@ -43,11 +51,20 @@ def parse_args(description: str):
                         help="tiny CPU-friendly run that only checks the code paths work")
     parser.add_argument("--device", default="auto", choices=["auto", "cpu", "cuda", "mps"])
     parser.add_argument("--seed", type=int, default=SEED)
+    parser.add_argument("--analysis-level", default="lean", choices=list(ANALYSIS_LEVELS),
+                        help="lean (default): final checkpoint + weight grid + metrics.csv; "
+                             "full: every-step/every-organize PNGs + checkpoints (GBs, debugging only)")
     return parser.parse_args()
 
 
+def seed_tag(args) -> str:
+    """'_s<seed>' - appended to every run_name and named checkpoint."""
+    return f"_s{args.seed}"
+
+
 def run_size(args):
-    """Returns (size_kwargs, run_name_suffix, checkpoint_name_suffix)."""
+    """Returns (size_kwargs, run_name_suffix, checkpoint_name_suffix); suffixes are '_s<seed>[_smoke]'."""
+    tag = seed_tag(args)
     if args.smoke:
-        return dict(SMOKE), "_smoke", "_smoke"
-    return dict(FULL), "", ""
+        return dict(SMOKE), tag + "_smoke", tag + "_smoke"
+    return dict(FULL), tag, tag

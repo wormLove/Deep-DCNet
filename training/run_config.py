@@ -20,12 +20,42 @@ from architectures.stacked import StackedBiologicalClassifier
 from training.datasets import get_spec
 
 RUN_CONFIG_FILENAME = "run_config.json"
+FINAL_EVAL_FILENAME = "final_eval.json"
 
 
 def write_run_config(run_dir, cfg: Dict[str, Any]) -> Path:
     path = Path(run_dir) / RUN_CONFIG_FILENAME
     with open(path, "w", encoding="utf-8") as f:
         json.dump(cfg, f, indent=2, sort_keys=True, default=str)
+    return path
+
+
+def write_final_eval(
+    run_dir,
+    final_acc: float,
+    best_acc: Optional[float],
+    best_acc_samples: Optional[int],
+    n_organizes: Optional[int],
+    train_wall_sec: float,
+    total_wall_sec: float,
+    device,
+) -> Path:
+    """final_eval.json next to run_config.json: the run's headline numbers + cost."""
+    from training.provenance import now_iso, peak_gpu_mem_mb  # local import: keeps this module light
+
+    path = Path(run_dir) / FINAL_EVAL_FILENAME
+    record = {
+        "final_acc": round(float(final_acc), 4),
+        "best_acc": None if best_acc is None else round(float(best_acc), 4),
+        "best_acc_samples": best_acc_samples,
+        "n_organizes": n_organizes,
+        "train_wall_sec": round(float(train_wall_sec), 1),
+        "total_wall_sec": round(float(total_wall_sec), 1),
+        "peak_gpu_mem_mb": peak_gpu_mem_mb(device),
+        "finished_at": now_iso(),
+    }
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(record, f, indent=2)
     return path
 
 

@@ -13,9 +13,23 @@ def _near_square_hw(n: int):
     return (h, n // h)
 
 
+ANALYSIS_LEVELS = ("lean", "full")
+
+
 class AnalysisEngine:
     """
     Save visual diagnostics for discrimination-layer learning.
+
+    level="lean" (default): only what a finished run needs - the final
+    checkpoint (checkpoints/final.pth) plus one final weight grid per layer
+    (weights_final{tag}_grid.png in the run folder). Per-step Hebbian
+    PNGs, per-organize PNGs and intermediate model_step_*.pth checkpoints
+    are skipped; per-organize numbers go to metrics.csv instead
+    (analysis/metrics_log.py, written by the training engines).
+
+    level="full": the original behaviour (every-step Hebbian PNG, every-
+    organize weight/lr/correlation PNGs and checkpoint). Several GB per run
+    - for debugging only.
     """
 
     def __init__(
@@ -25,13 +39,18 @@ class AnalysisEngine:
         image_hw=(28, 28),
         grid_rows: int = 25,
         grid_cols: int = 40,
+        level: str = "lean",
     ):
+        if level not in ANALYSIS_LEVELS:
+            raise ValueError(f"analysis level must be one of {ANALYSIS_LEVELS}, got {level!r}")
+        self.level = level
         timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         self.run_dir = ensure_dir(Path(base_dir) / run_name / timestamp)
-        self.weights_dir = ensure_dir(self.run_dir / "weights")
-        self.hebb_dir = ensure_dir(self.run_dir / "potential_hebb")
-        self.lr_dir = ensure_dir(self.run_dir / "lr_vec")
-        self.corr_dir = ensure_dir(self.run_dir / "correlation")
+        if level == "full":
+            self.weights_dir = ensure_dir(self.run_dir / "weights")
+            self.hebb_dir = ensure_dir(self.run_dir / "potential_hebb")
+            self.lr_dir = ensure_dir(self.run_dir / "lr_vec")
+            self.corr_dir = ensure_dir(self.run_dir / "correlation")
         self.ckpt_dir = ensure_dir(self.run_dir / "checkpoints")
         self.image_hw = image_hw
         self.grid_rows = int(grid_rows)
@@ -58,6 +77,8 @@ class AnalysisEngine:
             yield "", model.discrimination_layer, self.image_hw
 
     def save_step_state(self, model, step: int) -> None:
+        if self.level != "full":
+            return
         for tag, dl, hw in self._layers(model):
             save_patch_grid(
                 dl.organizer.potential_hebb,
@@ -69,6 +90,8 @@ class AnalysisEngine:
             )
 
     def save_organize_state(self, model, step: int) -> None:
+        if self.level != "full":
+            return
         for tag, dl, hw in self._layers(model):
             save_patch_grid(
                 dl.neuron_weights.detach(),
@@ -91,7 +114,9 @@ class AnalysisEngine:
                 percentile_clip=99.0,
             )
 
-    def save_checkpoint(self, model, step: int) -> Path:
+    def save_checkpoint(self, model, step: int) -> Optional[Path]:
+        if self.level != "full":
+            return None
         path = self.ckpt_dir / f"model_step_{step:04d}.pth"
         model.save_model(str(path))
         return path
@@ -99,4 +124,18 @@ class AnalysisEngine:
     def save_final_checkpoint(self, model) -> Path:
         path = self.ckpt_dir / "final.pth"
         model.save_model(str(path))
+        if self.level == "lean":
+            self.save_final_weights(model)
         return path
+
+    def save_final_weights(self, model) -> None:
+        """One weight grid per layer, same settings as the per-organize grids."""
+        for tag, dl, hw in self._layers(model):
+            save_patch_grid(
+                dl.neuron_weights.detach(),
+                self.run_dir / f"weights_final{tag}_grid.png",
+                image_hw=hw,
+                grid_rows=self.grid_rows,
+                grid_cols=self.grid_cols,
+                per_patch_minmax=True,
+            )

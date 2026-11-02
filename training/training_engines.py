@@ -1,4 +1,5 @@
 import math
+import time
 from typing import Callable, Optional
 
 import torch
@@ -24,6 +25,34 @@ def evaluate_classifier(model, loader, device: torch.device) -> float:
     return 100.0 * correct / max(total, 1)
 
 
+def _diag_metrics(diag: dict, suffix: str = "") -> dict:
+    """metrics.csv columns from one layer's diagnostics() dict."""
+    lr = diag["lr_vec"].to(torch.float32)
+    return {
+        f"lr_mean{suffix}": lr.mean().item(),
+        f"lr_min{suffix}": lr.min().item(),
+        f"lr_max{suffix}": lr.max().item(),
+        f"inactive_frac{suffix}": diag["inactive_mask"].to(torch.float32).mean().item(),
+        f"cycle_hits_frac{suffix}": diag["cycle_hits"].to(torch.float32).mean().item(),
+    }
+
+
+def _log_organize(metrics_log, organize_count, step, samples, loss, test_acc, t0, **extra) -> None:
+    """Append one per-organize row to metrics.csv (no-op when metrics_log is None)."""
+    if metrics_log is None:
+        return
+    row = {
+        "organize": organize_count,
+        "step": step,
+        "samples": samples,
+        "loss": loss,
+        "test_acc": test_acc,
+        "elapsed_sec": round(time.time() - t0, 2),
+    }
+    row.update(extra)
+    metrics_log.log(row)
+
+
 def train_classifier_plain(
     model,
     train_loader,
@@ -40,6 +69,7 @@ def train_classifier_plain(
     quiet_train: bool = False,
     eval_logger: Optional[Callable[[str, int, int, float], None]] = None,
     train_logger: Optional[Callable[[str], None]] = None,
+    metrics_log=None,
 ):
     total_steps = 0
     total_samples = 0
@@ -47,6 +77,7 @@ def train_classifier_plain(
     last_eval_samples = 0
     organize_count = 0
     last_loss = 0.0
+    t0 = time.time()
 
     progress = tqdm(train_loader, total=len(train_loader), desc="Classifier Train", leave=True)
     for x, y in progress:
@@ -79,9 +110,11 @@ def train_classifier_plain(
                     analysis.save_checkpoint(model, total_steps)
             weights_after = model.discrimination_layer.neuron_weights.detach()
             weight_shift = torch.norm(weights_after - weights_before).item()
+            eval_acc = None
             if eval_interval_samples > 0 and total_samples - last_eval_samples >= eval_interval_samples:
                 acc = evaluate_classifier(model, test_loader, device)
                 last_eval_samples = total_samples
+                eval_acc = acc
                 msg = (
                     f"[organize {organize_count}] "
                     f"step={total_steps}, samples={total_samples}, loss={last_loss:.6f}, "
@@ -103,6 +136,8 @@ def train_classifier_plain(
                     print(msg)
                 if train_logger is not None:
                     train_logger(msg)
+            _log_organize(metrics_log, organize_count, total_steps, total_samples, last_loss, eval_acc, t0,
+                          weight_shift=weight_shift, **_diag_metrics(diag))
             if debug_stats and summarize_cycle_fn is not None:
                 detail = "  " + summarize_cycle_fn(diag)
                 if not quiet_train:
@@ -130,6 +165,8 @@ def train_classifier_plain(
             print(msg)
         if train_logger is not None:
             train_logger(msg)
+        _log_organize(metrics_log, organize_count, total_steps, total_samples, last_loss, acc, t0,
+                      weight_shift=weight_shift, **_diag_metrics(diag))
         if debug_stats and summarize_cycle_fn is not None:
             detail = "  " + summarize_cycle_fn(diag)
             if not quiet_train:
@@ -170,6 +207,7 @@ def train_classifier_with_review(
     quiet_train: bool = False,
     eval_logger: Optional[Callable[[str, int, int, float], None]] = None,
     train_logger: Optional[Callable[[str], None]] = None,
+    metrics_log=None,
 ):
     total_steps = 0
     total_samples = 0
@@ -177,6 +215,7 @@ def train_classifier_with_review(
     last_eval_samples = 0
     organize_count = 0
     last_loss = 0.0
+    t0 = time.time()
 
     progress = tqdm(train_loader, total=len(train_loader), desc="Classifier Train", leave=True)
     for x, y in progress:
@@ -238,9 +277,11 @@ def train_classifier_with_review(
                     analysis.save_checkpoint(model, total_steps)
             weights_after = model.discrimination_layer.neuron_weights.detach()
             weight_shift = torch.norm(weights_after - weights_before).item()
+            eval_acc = None
             if eval_interval_samples > 0 and total_samples - last_eval_samples >= eval_interval_samples:
                 acc = evaluate_classifier(model, test_loader, device)
                 last_eval_samples = total_samples
+                eval_acc = acc
                 msg = (
                     f"[organize {organize_count}] "
                     f"step={total_steps}, samples={total_samples}, loss={last_loss:.6f}, "
@@ -264,6 +305,9 @@ def train_classifier_with_review(
                     print(msg)
                 if train_logger is not None:
                     train_logger(msg)
+            _log_organize(metrics_log, organize_count, total_steps, total_samples, last_loss, eval_acc, t0,
+                          weight_shift=weight_shift, **_diag_metrics(diag),
+                          review_p=model._p, cache_size=len(model.activation_cache))
             if debug_stats and summarize_cycle_fn is not None:
                 detail = "  " + summarize_cycle_fn(diag)
                 if not quiet_train:
@@ -293,6 +337,9 @@ def train_classifier_with_review(
             print(msg)
         if train_logger is not None:
             train_logger(msg)
+        _log_organize(metrics_log, organize_count, total_steps, total_samples, last_loss, acc, t0,
+                      weight_shift=weight_shift, **_diag_metrics(diag),
+                      review_p=model._p, cache_size=len(model.activation_cache))
         if debug_stats and summarize_cycle_fn is not None:
             detail = "  " + summarize_cycle_fn(diag)
             if not quiet_train:
@@ -338,6 +385,21 @@ def _stacked_layer_status(model) -> str:
     return " ".join(parts)
 
 
+def _stacked_layer_metrics(model, weight_shifts) -> dict:
+    """Per-layer metrics.csv columns (suffix _L0, _L1, ...) after an organize."""
+    m = {}
+    for i, (dl, shift, mon) in enumerate(zip(model.discrimination_layers, weight_shifts, model.monitors)):
+        sfx = f"_L{i}"
+        m[f"weight_shift{sfx}"] = shift
+        m.update(_diag_metrics(dl.diagnostics(), sfx))
+        m[f"drift{sfx}"] = mon.last_drift
+        m[f"stable{sfx}"] = mon.state == "stable"
+        if model._review_enabled:
+            m[f"review_p{sfx}"] = model._p[i]
+            m[f"cache_size{sfx}"] = len(model.activation_caches[i])
+    return m
+
+
 def train_classifier_stacked_plain(
     model,
     train_loader,
@@ -352,6 +414,7 @@ def train_classifier_stacked_plain(
     quiet_train: bool = False,
     eval_logger: Optional[Callable[[str, int, int, float], None]] = None,
     train_logger: Optional[Callable[[str], None]] = None,
+    metrics_log=None,
 ):
     """
     Organize-only training loop for a StackedBiologicalClassifier (no
@@ -365,9 +428,11 @@ def train_classifier_stacked_plain(
     last_eval_samples = 0
     organize_count = 0
     last_loss = 0.0
+    t0 = time.time()
+    layer_metrics = {}
 
     def do_organize_and_log(tag: str):
-        nonlocal organize_count
+        nonlocal organize_count, layer_metrics
         weights_before = [dl.neuron_weights.detach().clone() for dl in model.discrimination_layers]
         model.organize()
         organize_count += 1
@@ -376,6 +441,8 @@ def train_classifier_stacked_plain(
             for dl, wb in zip(model.discrimination_layers, weights_before)
         ]
         shift_str = ", ".join(f"L{i}={s:.6f}" for i, s in enumerate(weight_shifts))
+        if metrics_log is not None:
+            layer_metrics = _stacked_layer_metrics(model, weight_shifts)
         if analysis is not None:
             analysis.save_organize_state(model, total_steps)
             if enable_checkpoints:
@@ -404,9 +471,11 @@ def train_classifier_stacked_plain(
         if total_samples - last_organize_samples >= organize_interval_samples:
             shift_str = do_organize_and_log("organize")
             last_organize_samples = total_samples
+            eval_acc = None
             if eval_interval_samples > 0 and total_samples - last_eval_samples >= eval_interval_samples:
                 acc = evaluate_classifier(model, test_loader, device)
                 last_eval_samples = total_samples
+                eval_acc = acc
                 msg = (
                     f"[organize {organize_count}] step={total_steps}, samples={total_samples}, "
                     f"loss={last_loss:.6f}, weight_shifts=[{shift_str}], acc={acc:.2f}% | "
@@ -423,6 +492,8 @@ def train_classifier_stacked_plain(
                 print(msg)
             if train_logger is not None:
                 train_logger(msg)
+            _log_organize(metrics_log, organize_count, total_steps, total_samples, last_loss, eval_acc, t0,
+                          **layer_metrics)
 
     if total_samples > last_organize_samples:
         shift_str = do_organize_and_log("final organize")
@@ -437,6 +508,8 @@ def train_classifier_stacked_plain(
             train_logger(msg)
         if eval_logger is not None:
             eval_logger("final_organize", total_steps, total_samples, acc)
+        _log_organize(metrics_log, organize_count, total_steps, total_samples, last_loss, acc, t0,
+                      **layer_metrics)
 
     final_acc = evaluate_classifier(model, test_loader, device)
     if analysis is not None and enable_checkpoints:
@@ -466,6 +539,7 @@ def train_classifier_stacked_with_review(
     quiet_train: bool = False,
     eval_logger: Optional[Callable[[str, int, int, float], None]] = None,
     train_logger: Optional[Callable[[str], None]] = None,
+    metrics_log=None,
 ):
     """
     Full per-layer review training loop for a StackedBiologicalClassifier -
@@ -489,9 +563,11 @@ def train_classifier_stacked_with_review(
     last_eval_samples = 0
     organize_count = 0
     last_loss = 0.0
+    t0 = time.time()
+    layer_metrics = {}
 
     def do_organize_and_log():
-        nonlocal organize_count
+        nonlocal organize_count, layer_metrics
         weights_before = [dl.neuron_weights.detach().clone() for dl in model.discrimination_layers]
         model.organize()
         model.review_after_organize()
@@ -501,6 +577,8 @@ def train_classifier_stacked_with_review(
             for dl, wb in zip(model.discrimination_layers, weights_before)
         ]
         shift_str = ", ".join(f"L{i}={s:.6f}" for i, s in enumerate(weight_shifts))
+        if metrics_log is not None:
+            layer_metrics = _stacked_layer_metrics(model, weight_shifts)
         p_str = ", ".join(f"L{i}={p:.3f}" for i, p in enumerate(model._p))
         cache_str = ", ".join(f"L{i}={len(c)}" for i, c in enumerate(model.activation_caches))
         if analysis is not None:
@@ -546,9 +624,11 @@ def train_classifier_stacked_with_review(
         if total_samples - last_organize_samples >= organize_interval_samples:
             shift_str, p_str, cache_str = do_organize_and_log()
             last_organize_samples = total_samples
+            eval_acc = None
             if eval_interval_samples > 0 and total_samples - last_eval_samples >= eval_interval_samples:
                 acc = evaluate_classifier(model, test_loader, device)
                 last_eval_samples = total_samples
+                eval_acc = acc
                 msg = (
                     f"[organize {organize_count}] step={total_steps}, samples={total_samples}, "
                     f"loss={last_loss:.6f}, weight_shifts=[{shift_str}], acc={acc:.2f}%, "
@@ -566,6 +646,8 @@ def train_classifier_stacked_with_review(
                 print(msg)
             if train_logger is not None:
                 train_logger(msg)
+            _log_organize(metrics_log, organize_count, total_steps, total_samples, last_loss, eval_acc, t0,
+                          **layer_metrics)
 
     if total_samples > last_organize_samples:
         shift_str, p_str, cache_str = do_organize_and_log()
@@ -581,6 +663,8 @@ def train_classifier_stacked_with_review(
             train_logger(msg)
         if eval_logger is not None:
             eval_logger("final_organize", total_steps, total_samples, acc)
+        _log_organize(metrics_log, organize_count, total_steps, total_samples, last_loss, acc, t0,
+                      **layer_metrics)
 
     final_acc = evaluate_classifier(model, test_loader, device)
     if analysis is not None and enable_checkpoints:
