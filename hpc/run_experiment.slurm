@@ -30,6 +30,9 @@ fi
 SCRIPT="${1#experiments/}"; shift
 
 module purge
+# git first, Python last: Lmod prepends paths, so Python's newer GCCcore libs win.
+# git is only used for the Commit line below and git_commit in run_config.json.
+module load git/2.42.0-GCCcore-13.2.0
 module load Python/3.13.5-GCCcore-14.3.0
 source "$HOME/dcnet_venv/bin/activate"
 cd "$SLURM_SUBMIT_DIR"
