@@ -19,7 +19,7 @@
 #SBATCH --time=50:00:00
 #SBATCH --mem=32G
 #SBATCH --account=wids
-#SBATCH --qos=gpuext1
+#SBATCH --qos=l1
 #SBATCH --output=hpc/logs/slurm-%j.out
 #SBATCH --error=hpc/logs/slurm-%j.err
 
@@ -27,7 +27,7 @@ if [ -z "$1" ]; then
     echo "usage: sbatch hpc/run_experiment.slurm <script in experiments/> [extra args]"
     exit 1
 fi
-SCRIPT="$1"; shift
+SCRIPT="${1#experiments/}"; shift
 
 module purge
 module load Python/3.13.5-GCCcore-14.3.0
@@ -38,17 +38,33 @@ mkdir -p hpc/logs DATA RESULT checkpoints
 # Fail fast with a clear message if a dataset is missing (compute nodes cannot download).
 python training/datasets.py list
 
-echo "=========================================="
-echo "Job ID     : $SLURM_JOB_ID"
-echo "Experiment : $SCRIPT $*"
-echo "Start time : $(date)"
-python -c "import torch; print(f'GPU        : {torch.cuda.get_device_name(0)}')"
-echo "=========================================="
-
 # Every experiment script accepts --device; the point #4 sweep and point #6 scripts
 # also take their own flags (--runs, --arch, --head, ...), passed through via "$@".
-python "experiments/$SCRIPT" --device cuda "$@"
+CMD=(python "experiments/$SCRIPT" --device cuda "$@")
+
+# Same header as hpc/pioneer/run_experiment.slurm. Commit shows "unknown" if this
+# copy of the repo is not a git clone (the old hand-uploaded Markov copy).
+echo "=========================================="
+echo "Job ID     : $SLURM_JOB_ID"
+echo "Host       : $(hostname)"
+echo "Start time : $(date)"
+echo "Commit     : $(git rev-parse --short HEAD 2>/dev/null || echo unknown)"
+echo "Git status (empty = clean tree):"
+git status --short 2>/dev/null | head
+echo "GPU:"
+nvidia-smi -L
+echo "Python     : $(command -v python)"
+echo "Command    : ${CMD[*]}"
+echo "=========================================="
+
+START=$SECONDS
+"${CMD[@]}"
+STATUS=$?
+ELAPSED=$((SECONDS - START))
 
 echo "=========================================="
-echo "Job finished : $(date)"
+echo "End time   : $(date)"
+printf 'Elapsed    : %02d:%02d:%02d\n' $((ELAPSED / 3600)) $((ELAPSED % 3600 / 60)) $((ELAPSED % 60))
+echo "Exit code  : $STATUS"
 echo "=========================================="
+exit $STATUS
