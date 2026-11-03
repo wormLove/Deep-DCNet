@@ -110,8 +110,11 @@ drift_t = ||C_eff,t - C_eff,t-1||_F / max(||C_eff,t-1||_F, eps)
 ```
 
 This captures both continuous correlation changes and discrete mask turnover.
-The default hysteresis uses an enter threshold of 1%, an exit threshold of 2%,
-and two consecutive stable organize operations before enabling review.
+The hysteresis validated here uses an enter threshold of 1%, an exit threshold
+of 2%, and two consecutive stable organize operations before enabling review.
+Since the organizer changes after `v0.3.0` the default gate tests for a plateau
+of this drift instead, and this absolute gate is `review_gate="absolute"`; see
+[Organizer: Per-Neuron Consolidation and Review Gating](organizer.md).
 
 ## Validated Default
 

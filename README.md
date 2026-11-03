@@ -102,6 +102,10 @@ The current training scripts use `torchvision.datasets.MNIST`.
 The current optimizer design, sparse lateral schedule, and validation results are
 documented in [L1-Normalized Sparse Lateral Optimizer](docs/l1-sparse-optimizer.md).
 
+The organizer (per-neuron consolidation at organize, potential memory, organize
+step, and review gating) is documented in
+[Organizer: Per-Neuron Consolidation and Review Gating](docs/organizer.md).
+
 The preceding variance-based optimizer and its development path remain documented
 in [Iterative Activity Optimizer Development](docs/iterative-activity-optimizer.md).
 

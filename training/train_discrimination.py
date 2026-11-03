@@ -95,7 +95,12 @@ def run_smoke_train(
         discrimination_config={
             "non_negative": True,
             "optimizer_profile": "l1_sparse",
+            # Per training sample: a memory of one organize interval (200 samples), as in
+            # the original design (199/200 per step at batch size 1). (199/200) ** (1/4)
+            # gives the earlier 800-sample memory (199/200 per batch at batch size 4).
             "beta": 199 / 200,
+            # Only for organize_step="correction_factor": its per-organize schedule.
+            "correction_beta": 199 / 200,
             "lr_init": 0.99,
             "min_lr": 1e-3,
             "max_lr": 0.99,

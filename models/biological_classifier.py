@@ -4,9 +4,17 @@ import torch
 from torch import nn
 
 from core.activation_cache import ActivationCache
-from core.weight_monitor import EffectiveOperatorDriftMonitor
+from core.weight_monitor import EffectiveOperatorDriftMonitor, PlateauDriftMonitor
 from models.discrimination import DiscriminationLayer
 from models.readout import ReadoutHead
+
+# Review gates and the settings recorded for each. "plateau" opens once the effective
+# lateral drift stops falling; "absolute" (the previous gate) once it falls below
+# tau_enter.
+REVIEW_GATES = {
+    "plateau": (PlateauDriftMonitor, ("window", "allowed_decrease", "k_enter", "exit_ratio")),
+    "absolute": (EffectiveOperatorDriftMonitor, ("tau_enter", "tau_exit", "k_enter")),
+}
 
 
 class BiologicalClassifier(nn.Module):
@@ -31,8 +39,12 @@ class BiologicalClassifier(nn.Module):
         data_initializer=None,
         transform: Optional[Callable[[torch.Tensor], torch.Tensor]] = None,
         discrimination_config: Optional[Dict] = None,
+        review_gate: str = "plateau",
+        review_gate_config: Optional[Dict] = None,
     ):
         super().__init__()
+        if review_gate not in REVIEW_GATES:
+            raise ValueError(f"review_gate must be one of {tuple(REVIEW_GATES)}.")
         self.transform = transform if transform is not None else (lambda t: t)
         self.discrimination_config = dict(discrimination_config or {})
 
@@ -57,6 +69,11 @@ class BiologicalClassifier(nn.Module):
             ),
             "optimizer_initial_max_iters": activity_optimizer.initial_max_iters,
             "organize_update_scope": self.discrimination_layer.organize_update_scope,
+            "organize_step": self.discrimination_layer.organizer.organize_step,
+            # beta became per sample alongside correction_beta; a saved config without
+            # correction_beta used beta per batch.
+            "beta": self.discrimination_layer.organizer.beta,
+            "correction_beta": self.discrimination_layer.organizer.correction_beta,
         }
         if self.discrimination_layer.optimizer_profile == "l1_sparse":
             self.discrimination_config.pop("optimizer_variance_stop_window", None)
@@ -84,12 +101,16 @@ class BiologicalClassifier(nn.Module):
         for param in self.discrimination_layer.parameters():
             param.requires_grad = False
 
-        self.monitor_last_dl = EffectiveOperatorDriftMonitor(
+        monitor_type, gate_settings = REVIEW_GATES[review_gate]
+        self.monitor_last_dl = monitor_type(
             name="DL_Effective_Lateral",
-            tau_enter=0.01,
-            tau_exit=0.02,
-            k_enter=2,
+            **dict(review_gate_config or {}),
         )
+        # Resolved, as for discrimination_config.
+        self.review_gate_config = {
+            "review_gate": review_gate,
+            **{key: getattr(self.monitor_last_dl, key) for key in gate_settings},
+        }
         self.activation_cache = ActivationCache()
         self._review_enabled = False
         self._p = 0.0
@@ -185,9 +206,13 @@ class BiologicalClassifier(nn.Module):
         state = {
             "discrimination_layer": self.discrimination_layer.state_dict(),
             "meta": {
-                "version": "l1_sparse_optimizer_v1",
+                # Bumped when organize() defaulted to the normalized residual direction,
+                # beta became a per-sample decay and review defaulted to the plateau
+                # gate: an earlier config's beta is per batch.
+                "version": "organize_direction_v1",
                 "has_readout": self.readout_head is not None,
                 "discrimination_config": self.discrimination_config,
+                "review_gate_config": self.review_gate_config,
                 "initializer_config": self.initializer_config,
             },
         }
@@ -197,7 +222,11 @@ class BiologicalClassifier(nn.Module):
 
     def load_model(self, path: str, map_location=None) -> None:
         state = torch.load(path, map_location=map_location)
-        self.discrimination_layer.load_state_dict(state["discrimination_layer"])
+        layer_state = dict(state["discrimination_layer"])
+        # Organizer-study checkpoints from a direction-only organizer carry no
+        # correction_factor state; the "direction" step does not use it.
+        layer_state.setdefault("organizer.beta_accum", self.discrimination_layer.organizer.beta_accum)
+        self.discrimination_layer.load_state_dict(layer_state)
         self.discrimination_layer.activity_optimizer.update_cached_gain(
             self.discrimination_layer.effective_lateral_matrix
         )

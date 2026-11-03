@@ -49,10 +49,12 @@ class DiscriminationLayer(nn.Module):
         optimizer_y0_divide_by_diagonal: bool | None = None,
         connection_ratio_schedule: Optional[Mapping[int, float]] = None,
         organize_update_scope: str = "activated",
+        organize_step: str = "direction",
         lr_init: float = 0.99,
         min_lr: float = 1e-3,
         max_lr: float = 0.99,
         beta: float = 0.99,
+        correction_beta: Optional[float] = None,
         recover_step: float = 0.05,
         recover_alpha: float = 0.2,
         strength_gate_k: float = 1.0,
@@ -194,6 +196,9 @@ class DiscriminationLayer(nn.Module):
             out_dim=out_dim,
             default_lr=self.lr_init,
             beta=beta,
+            correction_beta=correction_beta,
+            organize_step=organize_step,
+            weight_norm_p=self.weight_norm_p,
             use_cooldown=use_cooldown,
         )
         self.stats = NeuronStateTracker(
@@ -427,7 +432,7 @@ class DiscriminationLayer(nn.Module):
         self.organizer.potential_hebb.zero_()
         self.organizer.potential_antihebb.zero_()
         self.organizer.cooldown_state.zero_()
-        self.organizer.beta_accum.fill_(self.organizer.beta)
+        self.organizer.beta_accum.fill_(self.organizer.correction_beta)
         self.organizer.set_learning_rates(torch.full_like(self.organizer.lr_vec, self.organizer.default_lr))
         self.last_lr_vec.copy_(self.organizer.lr_vec)
         self.last_update_mask.zero_()
