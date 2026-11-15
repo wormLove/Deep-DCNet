@@ -4,7 +4,11 @@ Accuracy on the full test set, in %, as mean ± std over seeds. The table betwee
 
 ## Current results
 <!-- AUTO-RESULTS:BEGIN -->
-_No multi-seed results yet. Run `python tools/build_results_index.py --update-doc docs/results.md` on the cluster after a batch of runs._
+Generated 2026-11-15 from `RESULT` · 1 run
+
+| Dataset | Architecture | Head | Setup | Protocol | Seeds | Accuracy (mean ± std) | Min–max | Runs |
+|---|---|---|---|---|---|---|---|---|
+| mnist | single_layer | readout | S0 | plain | 33 | 94.01 | 94.01–94.01 | `single_layer_baseline` |
 <!-- AUTO-RESULTS:END -->
 
 ## Calibration
