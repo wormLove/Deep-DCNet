@@ -33,8 +33,16 @@ modifies anything under RESULT/ except these four output files, which it
 always rebuilds from scratch (no stale rows left behind from a
 renamed/deleted run).
 
+--update-doc PATH also rewrites the block between
+<!-- AUTO-RESULTS:BEGIN --> and <!-- AUTO-RESULTS:END --> in PATH
+(docs/results.md): one table of mean +- std over seeds per configuration
+(smoke, failed and pre-setup runs left out), plus a short robustness table
+when non-smoke robustness sweeps exist for those runs. Text outside the
+markers is never touched.
+
 Usage (from the repo root, same venv you train with):
     python tools/build_results_index.py
+    python tools/build_results_index.py --update-doc docs/results.md
     python tools/build_results_index.py --result-root My_Notes_Aishani/results/RESULT
 """
 import argparse
@@ -42,6 +50,7 @@ import csv
 import json
 import re
 import statistics
+from datetime import date
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -258,9 +267,154 @@ def write_markdown(run_rows, summary_rows, rob_rows, path: Path) -> None:
     path.write_text("\n".join(parts), encoding="utf-8")
 
 
+# ---------------------------------------------------------------------------
+# docs/results.md auto block (--update-doc)
+# ---------------------------------------------------------------------------
+DOC_BEGIN = "<!-- AUTO-RESULTS:BEGIN -->"
+DOC_END = "<!-- AUTO-RESULTS:END -->"
+DATASET_ORDER = ["mnist", "fashion_mnist", "kmnist", "cifar10", "cifar10_gray"]
+DOC_ROBUSTNESS_CELLS = [
+    ("clean", 0.0, "Clean"),
+    ("gaussian", 0.5, "Gaussian noise \u03c3 0.5"),
+    ("occlusion", 14.0, "Occlusion 14\u00d714"),
+    ("shift", 4.0, "Shift \u00b14 px"),
+]
+
+
+def _mean_std(values: List[float]) -> str:
+    if len(values) > 1:
+        return f"{statistics.mean(values):.2f} \u00b1 {statistics.stdev(values):.2f}"
+    return f"{statistics.mean(values):.2f}"
+
+
+def doc_groups(run_rows: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """
+    Configurations for the docs table: newest folder per run_name, without
+    smoke runs, failed/incomplete-accuracy runs and old runs with no setup.
+    Grouped by run_name minus _s<seed> plus dataset/arch/head/setup/protocol,
+    so two different experiments never get averaged together.
+    """
+    newest: Dict[str, Dict[str, Any]] = {}
+    for row in run_rows:  # sorted by (run_name, timestamp): later rows are newer
+        if ("_smoke" in row["run_name"] or row["status"] == "failed"
+                or row["final_acc"] in ("MISSING", "failed") or not row["setup"]):
+            continue
+        newest[row["run_name"]] = row
+
+    groups: Dict[tuple, List[Dict[str, Any]]] = {}
+    for row in newest.values():
+        key = (row["dataset"], row["arch"], row["head"], row["setup"], row["protocol"], config_name(row["run_name"]))
+        groups.setdefault(key, []).append(row)
+
+    def sort_key(key):
+        ds = key[0]
+        return (DATASET_ORDER.index(ds) if ds in DATASET_ORDER else len(DATASET_ORDER), ds, *key[1:])
+
+    out = []
+    for key in sorted(groups, key=sort_key):
+        dataset, arch, head, setup, protocol, config = key
+        rows = sorted(groups[key], key=lambda r: (r["seed"] == "", str(r["seed"]).zfill(8)))
+        accs = [float(r["final_acc"]) for r in rows]
+        out.append({
+            "dataset": dataset, "arch": arch, "head": head, "setup": setup, "protocol": protocol,
+            "config": config,
+            "seeds": ", ".join(str(r["seed"]) if r["seed"] != "" else "?" for r in rows),
+            "n": len(rows),
+            "acc": _mean_std(accs),
+            "range": f"{min(accs):.2f}\u2013{max(accs):.2f}",
+            "run_names": [r["run_name"] for r in rows],
+        })
+    return out
+
+
+def _doc_robustness(groups: List[Dict[str, Any]], rob_rows: List[Dict[str, Any]]) -> str:
+    """Per-dataset table: rows = the 4 headline corruptions, columns = configurations."""
+    # newest non-smoke sweep per model (= run_name)
+    newest_ts: Dict[str, str] = {}
+    for r in rob_rows:
+        if r["sweep"].endswith("_smoke"):
+            continue
+        if r["model"] not in newest_ts or r["timestamp"] > newest_ts[r["model"]]:
+            newest_ts[r["model"]] = r["timestamp"]
+    acc: Dict[tuple, float] = {}
+    for r in rob_rows:
+        if r["sweep"].endswith("_smoke") or newest_ts.get(r["model"]) != r["timestamp"]:
+            continue
+        try:
+            acc[(r["model"], r["perturbation"], float(r["level"]))] = float(r["acc"])
+        except (TypeError, ValueError):
+            continue
+
+    parts = []
+    datasets = list(dict.fromkeys(g["dataset"] for g in groups))
+    for ds in datasets:
+        cols = []
+        for g in groups:
+            if g["dataset"] != ds:
+                continue
+            if not any((rn, p, lv) in acc for rn in g["run_names"] for p, lv, _ in DOC_ROBUSTNESS_CELLS):
+                continue
+            cols.append(g)
+        if not cols:
+            continue
+        labels = [f"{g['arch']} + {g['head']} ({g['setup']}, {g['protocol']})" for g in cols]
+        lines = [f"**{ds}** - accuracy (%) under corruption of the test images, mean \u00b1 std over seeds",
+                 "",
+                 "| Corruption | " + " | ".join(labels) + " |",
+                 "|---|" + "---|" * len(labels)]
+        for p, lv, name in DOC_ROBUSTNESS_CELLS:
+            cells = []
+            for g in cols:
+                vals = [acc[(rn, p, lv)] for rn in g["run_names"] if (rn, p, lv) in acc]
+                if not vals:
+                    cells.append("")
+                    continue
+                cell = _mean_std(vals)
+                if len(vals) != g["n"]:
+                    cell += f" (n={len(vals)})"
+                cells.append(cell)
+            lines.append(f"| {name} | " + " | ".join(cells) + " |")
+        parts.append("\n".join(lines))
+    return "\n\n".join(parts)
+
+
+def doc_results_block(run_rows: List[Dict[str, Any]], rob_rows: List[Dict[str, Any]], result_root: Path) -> str:
+    groups = doc_groups(run_rows)
+    n_runs = sum(g["n"] for g in groups)
+    lines = [f"Generated {date.today().isoformat()} from `{result_root}` \u00b7 {n_runs} run{'' if n_runs == 1 else 's'}", ""]
+    if not groups:
+        lines.append("_No finished non-smoke runs with a setup yet._")
+        return "\n".join(lines)
+    lines.append("| Dataset | Architecture | Head | Setup | Protocol | Seeds | Accuracy (mean \u00b1 std) | Min\u2013max | Runs |")
+    lines.append("|---|---|---|---|---|---|---|---|---|")
+    for g in groups:
+        lines.append(f"| {g['dataset']} | {g['arch']} | {g['head']} | {g['setup']} | {g['protocol']} | "
+                     f"{g['seeds']} | {g['acc']} | {g['range']} | `{g['config']}` |")
+    rob = _doc_robustness(groups, rob_rows)
+    if rob:
+        lines += ["", "### Robustness", "", rob]
+    return "\n".join(lines)
+
+
+def update_doc(path: Path, block: str) -> None:
+    """Replace the text between the AUTO-RESULTS markers in `path`; nothing outside them changes."""
+    if not path.exists():
+        raise SystemExit(f"--update-doc: {path} does not exist")
+    text = path.read_text(encoding="utf-8")
+    if text.count(DOC_BEGIN) != 1 or text.count(DOC_END) != 1:
+        raise SystemExit(f"--update-doc: {path} must contain exactly one '{DOC_BEGIN}' and one '{DOC_END}' line")
+    start = text.index(DOC_BEGIN) + len(DOC_BEGIN)
+    end = text.index(DOC_END)
+    if end < start:
+        raise SystemExit(f"--update-doc: in {path}, '{DOC_END}' comes before '{DOC_BEGIN}'")
+    path.write_text(text[:start] + "\n" + block + "\n" + text[end:], encoding="utf-8")
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--result-root", default="RESULT", help="Path to the RESULT/ folder (default: ./RESULT)")
+    parser.add_argument("--update-doc", default=None, metavar="PATH",
+                        help="Also rewrite the AUTO-RESULTS block in this markdown file (e.g. docs/results.md)")
     args = parser.parse_args()
 
     result_root = Path(args.result_root)
@@ -281,6 +435,9 @@ def main():
     print(f"[{len(summary_rows)}] configurations -> {result_root / 'index_summary.csv'}")
     print(f"[{len(rob_rows)}] robustness rows -> {result_root / 'index_robustness.csv'}")
     print(f"Summary -> {result_root / 'INDEX.md'}")
+    if args.update_doc:
+        update_doc(Path(args.update_doc), doc_results_block(run_rows, rob_rows, result_root))
+        print(f"Results block -> {args.update_doc}")
     missing = _incomplete(run_rows)
     if missing:
         print(f"\n[!] {len(missing)} run(s) look incomplete (no final_eval line or no checkpoints/final.pth): {missing}")

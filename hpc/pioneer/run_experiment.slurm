@@ -60,7 +60,9 @@ git status --short 2>/dev/null | head
 echo "GPU:"
 nvidia-smi -L
 echo "DCNET_TORCH: ${DCNET_TORCH:-pip}"
-echo "Constraint : ${SLURM_JOB_CONSTRAINTS:-unknown}"
+# SLURM_JOB_CONSTRAINTS is not set on Pioneer; read the job's Features instead.
+FEATURES=$(scontrol show job "$SLURM_JOB_ID" 2>/dev/null | grep -o 'Features=[^ ]*' | head -1 | cut -d= -f2)
+echo "Constraint : ${FEATURES:-unknown}"
 echo "Python     : $(command -v python)"
 python -c "
 import torch
