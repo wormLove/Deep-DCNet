@@ -22,6 +22,12 @@ min and max of final_acc. Only the newest finished folder of each run_name
 counts (re-running the same seed replaces, not adds). *_smoke runs are
 left out of the summary.
 
+Run status: final_eval.json has "status": "ok" or "failed" for runs from
+Plan 02c on (a failed run also records its "error"). Failed runs show as
+`failed` - not as incomplete/MISSING - and are left out of the summary.
+Older runs without a status are treated as before: "ok" when they have a
+final accuracy and a checkpoint, otherwise "incomplete".
+
 Safe to re-run any time after new jobs finish - it only reads, never
 modifies anything under RESULT/ except these four output files, which it
 always rebuilds from scratch (no stale rows left behind from a
@@ -42,10 +48,10 @@ from typing import Any, Dict, List, Optional
 SEED_SUFFIX = re.compile(r"_s(\d+)$")
 
 RUN_COLUMNS = [
-    "run_name", "timestamp", "dataset", "arch", "head", "hidden_dim", "setup", "protocol", "seed",
+    "run_name", "timestamp", "status", "dataset", "arch", "head", "hidden_dim", "setup", "protocol", "seed",
     "num_train_samples", "final_acc", "best_acc", "best_acc_samples", "n_organizes",
     "train_wall_sec", "peak_gpu_mem_mb", "git_commit", "git_dirty", "analysis_level",
-    "has_checkpoint", "run_dir",
+    "has_checkpoint", "error", "run_dir",
 ]
 SUMMARY_COLUMNS = ["config", "dataset", "setup", "protocol", "n_seeds", "seeds",
                    "mean_acc", "std_acc", "min_acc", "max_acc", "run_names"]
@@ -106,17 +112,29 @@ def collect_runs(result_root: Path) -> List[Dict[str, Any]]:
     for run_name, ts_dir in _finished_run_dirs(result_root):
         cfg = _read_json(ts_dir / "run_config.json")
         fin = _read_json(ts_dir / "final_eval.json")
+        failed = fin.get("status") == "failed"
         final_acc = fin.get("final_acc")
-        if final_acc is None:
+        if final_acc is None and not failed:
             final_acc = _parse_final_acc(ts_dir / "eval_log.txt")
         seed = cfg.get("seed")
         if seed is None:
             m = SEED_SUFFIX.search(run_name)
             seed = int(m.group(1)) if m else None
         has_ckpt = (ts_dir / "checkpoints" / "final.pth").exists()
+        if failed:
+            status = "failed"
+        elif final_acc is None or not has_ckpt:
+            status = "incomplete"
+        else:
+            status = "ok"
+        if failed:
+            final_acc_cell = "failed"
+        else:
+            final_acc_cell = _fmt(final_acc) if final_acc is not None else "MISSING"
         rows.append({
             "run_name": run_name,
             "timestamp": ts_dir.name,
+            "status": status,
             "dataset": cfg.get("dataset", ""),
             "arch": cfg.get("arch", ""),
             "head": cfg.get("head", ""),
@@ -125,7 +143,7 @@ def collect_runs(result_root: Path) -> List[Dict[str, Any]]:
             "protocol": cfg.get("protocol", cfg.get("training_mode", "")),
             "seed": _fmt(seed),
             "num_train_samples": cfg.get("num_train_samples", ""),
-            "final_acc": _fmt(final_acc) if final_acc is not None else "MISSING",
+            "final_acc": final_acc_cell,
             "best_acc": _fmt(fin.get("best_acc")),
             "best_acc_samples": _fmt(fin.get("best_acc_samples")),
             "n_organizes": _fmt(fin.get("n_organizes")),
@@ -135,16 +153,17 @@ def collect_runs(result_root: Path) -> List[Dict[str, Any]]:
             "git_dirty": _fmt(cfg.get("git_dirty")),
             "analysis_level": cfg.get("analysis_level", ""),
             "has_checkpoint": "yes" if has_ckpt else "NO",
+            "error": fin.get("error", "") if failed else "",
             "run_dir": str(ts_dir),
         })
     return rows
 
 
 def summarize(run_rows: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-    """Aggregate final_acc over seeds; newest finished folder per run_name; no *_smoke runs."""
+    """Aggregate final_acc over seeds; newest finished folder per run_name; no *_smoke or failed runs."""
     newest: Dict[str, Dict[str, Any]] = {}
     for row in run_rows:  # rows are sorted by (run_name, timestamp), so later rows are newer
-        if "_smoke" in row["run_name"] or row["final_acc"] == "MISSING":
+        if "_smoke" in row["run_name"] or row["status"] == "failed" or row["final_acc"] == "MISSING":
             continue
         newest[row["run_name"]] = row
 
@@ -208,11 +227,15 @@ def _md_table(rows: List[Dict[str, Any]], columns: List[str]) -> str:
 
 
 def _incomplete(run_rows: List[Dict[str, Any]]) -> List[str]:
-    return [r["run_name"] for r in run_rows if r["final_acc"] == "MISSING" or r["has_checkpoint"] == "NO"]
+    return [r["run_name"] for r in run_rows if r["status"] == "incomplete"]
+
+
+def _failed(run_rows: List[Dict[str, Any]]) -> List[str]:
+    return [f"{r['run_name']} ({r['timestamp']})" for r in run_rows if r["status"] == "failed"]
 
 
 def write_markdown(run_rows, summary_rows, rob_rows, path: Path) -> None:
-    run_cols = ["run_name", "dataset", "arch", "head", "hidden_dim", "setup", "protocol", "seed",
+    run_cols = ["run_name", "status", "dataset", "arch", "head", "hidden_dim", "setup", "protocol", "seed",
                 "final_acc", "best_acc", "train_wall_sec", "git_commit", "has_checkpoint", "timestamp"]
     sum_cols = ["config", "dataset", "setup", "protocol", "n_seeds", "seeds", "mean_acc", "std_acc", "min_acc", "max_acc"]
     rob_cols = ["sweep", "model", "perturbation", "level", "acc", "drop_vs_clean"]
@@ -221,8 +244,11 @@ def write_markdown(run_rows, summary_rows, rob_rows, path: Path) -> None:
     parts = ["# RESULT index\n", "Auto-generated by `tools/build_results_index.py` - do not hand-edit.\n"]
     if missing:
         parts.append(f"**Incomplete runs (missing final accuracy or checkpoint):** {', '.join(missing)}\n")
+    failed = _failed(run_rows)
+    if failed:
+        parts.append(f"**Failed runs (raised during training; error in index_runs.csv):** {', '.join(failed)}\n")
     parts.append("\n## Summary over seeds\n")
-    parts.append("final_acc (%), newest folder per run_name, `_s<seed>` stripped to group; smoke runs excluded; "
+    parts.append("final_acc (%), newest folder per run_name, `_s<seed>` stripped to group; smoke and failed runs excluded; "
                  "std = sample std (blank for 1 seed). Blank setup = run recorded before setups existed.\n")
     parts.append(_md_table(summary_rows, sum_cols))
     parts.append("\n## Training runs\n")
@@ -258,6 +284,11 @@ def main():
     missing = _incomplete(run_rows)
     if missing:
         print(f"\n[!] {len(missing)} run(s) look incomplete (no final_eval line or no checkpoints/final.pth): {missing}")
+    failed = [r for r in run_rows if r["status"] == "failed"]
+    if failed:
+        print(f"\n[!] {len(failed)} run(s) failed:")
+        for r in failed:
+            print(f"    {r['run_name']} ({r['timestamp']}): {r['error']}")
 
 
 if __name__ == "__main__":

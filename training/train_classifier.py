@@ -23,7 +23,7 @@ from modules.classifier_heads import TraditionalMLPHead
 from modules.readout import ReadoutHead
 from training.datasets import DATASET_CHOICES, get_dataset
 from training.provenance import reset_peak_gpu_mem, run_provenance, set_seed
-from training.run_config import write_final_eval, write_run_config
+from training.run_config import write_failed_eval, write_final_eval, write_run_config
 from training.training_engines import evaluate_classifier, train_classifier_plain, train_classifier_with_review
 
 BASE_DIR = str(PROJECT_ROOT)
@@ -338,66 +338,74 @@ def run_classifier_train(
     for line in setup_lines:
         train_logger(line)
 
-    base_acc = evaluate_classifier(model, test_loader, device)
-    train_logger(f"[eval step 0] acc={base_acc:.2f}%")
-    eval_logger("eval_step_0", 0, 0, base_acc)
+    # If anything from here on raises (e.g. CUDA "no kernel image" on a GPU
+    # this torch build doesn't support), final_eval.json records it as
+    # failed so the results index doesn't show it as merely incomplete.
+    try:
+        base_acc = evaluate_classifier(model, test_loader, device)
+        train_logger(f"[eval step 0] acc={base_acc:.2f}%")
+        eval_logger("eval_step_0", 0, 0, base_acc)
 
-    engine = train_classifier_with_review if training_mode == "review" else train_classifier_plain
-    engine_kwargs = dict(
-        model=model,
-        train_loader=train_loader,
-        test_loader=test_loader,
-        device=device,
-        criterion=criterion,
-        optimizer=optimizer,
-        organize_interval_samples=organize_interval_samples,
-        eval_interval_samples=eval_interval_samples,
-        analysis=analysis,
-        enable_checkpoints=enable_checkpoints,
-        debug_stats=debug_stats,
-        summarize_cycle_fn=summarize_cycle,
-        quiet_train=quiet_train,
-        eval_logger=eval_logger,
-        train_logger=train_logger,
-        metrics_log=metrics_log,
-    )
-    if training_mode == "review":
-        engine_kwargs["review_per_sample_max"] = review_per_sample_max
-        engine_kwargs["review_error_repeat"] = review_error_repeat
-    train_start = time.time()
-    final_acc = engine(**engine_kwargs)
-    train_wall_sec = time.time() - train_start
-
-    if checkpoint_name is not None:
-        ckpt_dir = str(checkpoints_dir) if checkpoints_dir is not None else str(Path(BASE_DIR) / "checkpoints")
-        path = save_layer(
-            model,
-            name=checkpoint_name,
-            checkpoints_dir=ckpt_dir,
-            meta={
-                "run_name": run_name,
-                "head": head,
-                "final_acc": final_acc,
-                "source": "training/train_classifier.py",
-            },
-            overwrite=True,
-        )
-        msg = f"[checkpoint] saved reusable discrimination-layer checkpoint '{checkpoint_name}' -> {path}"
-        if not quiet_train:
-            print(msg)
-        train_logger(msg)
-
-    if analysis is not None:
-        write_final_eval(
-            analysis.run_dir,
-            final_acc=final_acc,
-            best_acc=best["acc"],
-            best_acc_samples=best["samples"],
-            n_organizes=len(metrics_log),
-            train_wall_sec=train_wall_sec,
-            total_wall_sec=time.time() - run_start,
+        engine = train_classifier_with_review if training_mode == "review" else train_classifier_plain
+        engine_kwargs = dict(
+            model=model,
+            train_loader=train_loader,
+            test_loader=test_loader,
             device=device,
+            criterion=criterion,
+            optimizer=optimizer,
+            organize_interval_samples=organize_interval_samples,
+            eval_interval_samples=eval_interval_samples,
+            analysis=analysis,
+            enable_checkpoints=enable_checkpoints,
+            debug_stats=debug_stats,
+            summarize_cycle_fn=summarize_cycle,
+            quiet_train=quiet_train,
+            eval_logger=eval_logger,
+            train_logger=train_logger,
+            metrics_log=metrics_log,
         )
+        if training_mode == "review":
+            engine_kwargs["review_per_sample_max"] = review_per_sample_max
+            engine_kwargs["review_error_repeat"] = review_error_repeat
+        train_start = time.time()
+        final_acc = engine(**engine_kwargs)
+        train_wall_sec = time.time() - train_start
+
+        if checkpoint_name is not None:
+            ckpt_dir = str(checkpoints_dir) if checkpoints_dir is not None else str(Path(BASE_DIR) / "checkpoints")
+            path = save_layer(
+                model,
+                name=checkpoint_name,
+                checkpoints_dir=ckpt_dir,
+                meta={
+                    "run_name": run_name,
+                    "head": head,
+                    "final_acc": final_acc,
+                    "source": "training/train_classifier.py",
+                },
+                overwrite=True,
+            )
+            msg = f"[checkpoint] saved reusable discrimination-layer checkpoint '{checkpoint_name}' -> {path}"
+            if not quiet_train:
+                print(msg)
+            train_logger(msg)
+
+        if analysis is not None:
+            write_final_eval(
+                analysis.run_dir,
+                final_acc=final_acc,
+                best_acc=best["acc"],
+                best_acc_samples=best["samples"],
+                n_organizes=len(metrics_log),
+                train_wall_sec=train_wall_sec,
+                total_wall_sec=time.time() - run_start,
+                device=device,
+            )
+    except Exception as exc:
+        if analysis is not None:
+            write_failed_eval(analysis.run_dir, exc)
+        raise
 
     return final_acc
 

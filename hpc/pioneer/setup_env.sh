@@ -2,6 +2,10 @@
 # =============================================================================
 # One-time environment setup for Pioneer - run on the LOGIN NODE.
 #
+# NOTE: this is the setup for the MODULE environment (DCNET_TORCH=module,
+# RTX 2080 Ti nodes only). The default environment is now the pip one:
+# see hpc/pioneer/setup_env_pip.sh.
+#
 # Pioneer already has a PyTorch module (torch + torchvision + CUDA), so no
 # PyTorch install is needed. This script only makes sure tqdm and
 # matplotlib are importable on top of it:
@@ -22,7 +26,10 @@ set -e
 # Run from the repo root no matter where the script was called from.
 cd "$(dirname "$0")/../.." || exit 1
 
-# Module load + venv (if it already exists from an earlier run).
+# Module load + venv (if it already exists from an earlier run). This script
+# sets up the MODULE environment, so pick it explicitly (activate.sh now
+# defaults to the pip environment - see setup_env_pip.sh).
+export DCNET_TORCH=module
 source hpc/pioneer/activate.sh
 
 if python -c "import tqdm, matplotlib" >/dev/null 2>&1; then

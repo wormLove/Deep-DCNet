@@ -45,6 +45,7 @@ def write_final_eval(
 
     path = Path(run_dir) / FINAL_EVAL_FILENAME
     record = {
+        "status": "ok",
         "final_acc": round(float(final_acc), 4),
         "best_acc": None if best_acc is None else round(float(best_acc), 4),
         "best_acc_samples": best_acc_samples,
@@ -57,6 +58,27 @@ def write_final_eval(
     with open(path, "w", encoding="utf-8") as f:
         json.dump(record, f, indent=2)
     return path
+
+
+def write_failed_eval(run_dir, exc: BaseException) -> Optional[Path]:
+    """
+    final_eval.json for a run that raised: {"status": "failed", "error": ...,
+    "finished_at": ...}, so tools/build_results_index.py can show it as
+    failed instead of incomplete. Never raises itself - the caller re-raises
+    the original exception right after.
+    """
+    try:
+        from training.provenance import now_iso  # local import: keeps this module light
+
+        message = str(exc).strip().splitlines()
+        error = type(exc).__name__ + (f": {message[0]}" if message else "")
+        path = Path(run_dir) / FINAL_EVAL_FILENAME
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump({"status": "failed", "error": error[:500], "finished_at": now_iso()}, f, indent=2)
+        return path
+    except Exception as write_exc:  # don't hide the real error behind this one
+        print(f"[warn] could not write failed final_eval.json in {run_dir}: {write_exc}")
+        return None
 
 
 def find_run_dir(run_name: str, result_root, timestamp: Optional[str] = None) -> Path:
