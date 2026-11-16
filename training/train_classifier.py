@@ -22,6 +22,7 @@ from architectures.single_layer import BiologicalClassifier
 from modules.classifier_heads import TraditionalMLPHead
 from modules.readout import ReadoutHead
 from training.datasets import DATASET_CHOICES, get_dataset
+from training.freeze_protocol import FREEZE_DEFAULTS, run_freeze
 from training.provenance import reset_peak_gpu_mem, run_provenance, set_seed
 from training.run_config import write_failed_eval, write_final_eval, write_run_config
 from training.training_engines import evaluate_classifier, train_classifier_plain, train_classifier_with_review
@@ -166,6 +167,12 @@ def run_classifier_train(
     checkpoints_dir: Optional[Path] = None,
     seed: Optional[int] = None,
     analysis_level: str = "lean",
+    val_size: int = FREEZE_DEFAULTS["val_size"],
+    hebbian_epochs: int = FREEZE_DEFAULTS["hebbian_epochs"],
+    head_epochs: int = FREEZE_DEFAULTS["head_epochs"],
+    head_batch_size: int = FREEZE_DEFAULTS["head_batch_size"],
+    head_lr: float = FREEZE_DEFAULTS["head_lr"],
+    patience: int = FREEZE_DEFAULTS["patience"],
 ) -> float:
     """
     Runs one classifier training experiment on `dataset` (any name in
@@ -180,8 +187,19 @@ def run_classifier_train(
     training finishes, so a later experiment can reuse these exact learned
     features as a frozen extractor without retraining.
 
+    training_mode: "plain" / "review" train the discrimination layer and the
+    head together in one pass (training/training_engines.py). "freeze" runs
+    the freeze-then-train protocol (training/freeze_protocol.py): Hebbian
+    layer first without labels, freeze, cache features, then train the head
+    with early stopping on a validation split; val_size, hebbian_epochs,
+    head_epochs, head_batch_size, head_lr and patience apply only to it, and
+    eval_interval_samples / review_* are ignored. With "freeze",
+    checkpoint_name saves the frozen layer right after freezing.
+
     Returns the final test accuracy (%).
     """
+    if training_mode == "freeze" and integration_dim is not None:
+        raise ValueError("training_mode='freeze' does not support the integration layer (integration_dim must be None)")
     run_start = time.time()
     if seed is not None:
         set_seed(seed)
@@ -228,6 +246,55 @@ def run_classifier_train(
         model.enable_review(enabled=True, p0=0.0, pmax=review_pmax, delta=review_delta)
     else:
         model.enable_review(enabled=False)
+
+    if training_mode == "freeze":
+        # Model built exactly as above (same constructor calls, same RNG
+        # stream); everything after this point is in freeze_protocol.py.
+        return run_freeze(
+            model=model,
+            arch="single_layer",
+            spec=spec,
+            device=device,
+            train_subset=train_subset,
+            test_subset=test_subset,
+            result_root=result_root,
+            run_name=run_name,
+            batch_size=batch_size,
+            organize_interval_samples=organize_interval_samples,
+            record={
+                "arch": "single_layer",
+                "dataset": spec.name,
+                "input_dim": spec.input_dim,
+                "num_classes": spec.num_classes,
+                "image_chw": list(spec.image_chw),
+                "hidden_dim": hidden_dim,
+                "head": head,
+                "head_hidden_dims": list(head_hidden_dims),
+                "head_dropout": head_dropout,
+                "integration_dim": None,
+                "integration_activation": integration_activation,
+                "discrimination_config": discrimination_config,
+                "init_mode": init_mode,
+                "init_ratio": init_ratio,
+                "init_dataset_scope": init_dataset_scope,
+                "setup": "S0",
+            },
+            enable_analysis=enable_analysis,
+            enable_checkpoints=enable_checkpoints,
+            quiet_train=quiet_train,
+            save_train_log=save_train_log,
+            checkpoint_name=checkpoint_name,
+            checkpoints_dir=checkpoints_dir,
+            seed=seed,
+            analysis_level=analysis_level,
+            run_start=run_start,
+            val_size=val_size,
+            hebbian_epochs=hebbian_epochs,
+            head_epochs=head_epochs,
+            head_batch_size=head_batch_size,
+            head_lr=head_lr,
+            patience=patience,
+        )
 
     criterion = nn.CrossEntropyLoss()
     # Collect all backprop-trained parameters: integration layer (when present) + readout head
@@ -430,7 +497,10 @@ def parse_args():
     parser.add_argument("--disable-analysis", action="store_true")
     parser.add_argument("--disable-checkpoints", action="store_true")
     parser.add_argument("--debug-stats", action="store_true")
-    parser.add_argument("--training-mode", type=str, default="plain", choices=["plain", "review"])
+    parser.add_argument("--training-mode", type=str, default="plain", choices=["plain", "review", "freeze"],
+                        help="plain / review: Hebbian layer and head trained together in one pass. "
+                             "freeze: Hebbian layer first, freeze, then train the head on cached features "
+                             "(training/freeze_protocol.py).")
     parser.add_argument("--init-mode", type=str, default="random", choices=["random", "dataset"])
     parser.add_argument("--init-ratio", type=float, default=0.25)
     parser.add_argument("--init-dataset-scope", type=str, default="full", choices=["full", "subset"])
@@ -491,7 +561,23 @@ def parse_args():
     parser.add_argument("--analysis-level", type=str, default="lean", choices=list(ANALYSIS_LEVELS),
                         help="lean (default): final checkpoint + final weight grid + metrics.csv. "
                              "full: also every-step/every-organize PNGs and checkpoints (GBs; debugging).")
+    add_freeze_cli_args(parser)
     return parser.parse_args()
+
+
+def add_freeze_cli_args(parser) -> None:
+    """--val-size ... --patience (used only with --training-mode freeze); shared with train_classifier_stacked.py."""
+    g = parser.add_argument_group("freeze protocol (only with --training-mode freeze)")
+    g.add_argument("--val-size", type=int, default=FREEZE_DEFAULTS["val_size"],
+                   help="images held out of the training subset as validation (seeded permutation); 0 = no split")
+    g.add_argument("--hebbian-epochs", type=int, default=FREEZE_DEFAULTS["hebbian_epochs"],
+                   help="passes over the fit set for Hebbian learning (per layer when stacked)")
+    g.add_argument("--head-epochs", type=int, default=FREEZE_DEFAULTS["head_epochs"],
+                   help="maximum head-training epochs on the cached features")
+    g.add_argument("--head-batch-size", type=int, default=FREEZE_DEFAULTS["head_batch_size"])
+    g.add_argument("--head-lr", type=float, default=FREEZE_DEFAULTS["head_lr"], help="Adam learning rate for the head")
+    g.add_argument("--patience", type=int, default=FREEZE_DEFAULTS["patience"],
+                   help="early stopping: epochs without a new best val accuracy (<= 0 disables)")
 
 
 if __name__ == "__main__":
@@ -532,4 +618,10 @@ if __name__ == "__main__":
         checkpoint_name=args.checkpoint_name,
         seed=args.seed,
         analysis_level=args.analysis_level,
+        val_size=args.val_size,
+        hebbian_epochs=args.hebbian_epochs,
+        head_epochs=args.head_epochs,
+        head_batch_size=args.head_batch_size,
+        head_lr=args.head_lr,
+        patience=args.patience,
     )

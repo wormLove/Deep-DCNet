@@ -33,10 +33,12 @@ from core.checkpointing import save_stack
 from core.initializers import DatasetInitializerWhole
 from architectures.stacked import StackedBiologicalClassifier
 from training.datasets import DATASET_CHOICES, get_dataset
+from training.freeze_protocol import FREEZE_DEFAULTS, run_freeze
 from training.provenance import reset_peak_gpu_mem, run_provenance, set_seed
 from training.run_config import write_failed_eval, write_final_eval, write_run_config
 from training.train_classifier import (
     HEAD_CHOICES,
+    add_freeze_cli_args,
     build_eval_log_path,
     build_train_log_path,
     flatten_to_vector,
@@ -118,6 +120,12 @@ def run_classifier_train_stacked(
     checkpoints_dir: Optional[Path] = None,
     seed: Optional[int] = None,
     analysis_level: str = "lean",
+    val_size: int = FREEZE_DEFAULTS["val_size"],
+    hebbian_epochs: int = FREEZE_DEFAULTS["hebbian_epochs"],
+    head_epochs: int = FREEZE_DEFAULTS["head_epochs"],
+    head_batch_size: int = FREEZE_DEFAULTS["head_batch_size"],
+    head_lr: float = FREEZE_DEFAULTS["head_lr"],
+    patience: int = FREEZE_DEFAULTS["patience"],
 ) -> float:
     """
     Runs one stacked-classifier training experiment on `dataset` (any name
@@ -131,6 +139,14 @@ def run_classifier_train_stacked(
     because the original stacked baseline this is modeled on reached its
     92.59%/92.99% result WITH review; organize-only is expected to
     underperform substantially, same as it would for the single-layer case.
+
+    training_mode="freeze" runs the freeze-then-train protocol
+    (training/freeze_protocol.py): layer-wise Hebbian learning (L0, freeze,
+    L1 on frozen L0, freeze, ...) instead of the stability-gated cascade,
+    then the head on cached features with early stopping on a validation
+    split. val_size ... patience apply only to it; review_* and
+    eval_interval_samples are ignored. checkpoint_name then saves the frozen
+    stack right after freezing.
 
     Returns the final test accuracy (%).
     """
@@ -186,6 +202,53 @@ def run_classifier_train_stacked(
         model.enable_review(enabled=True, p0=0.0, pmax=review_pmax, delta=review_delta)
     else:
         model.enable_review(enabled=False)
+
+    if training_mode == "freeze":
+        # Model built exactly as above (same constructor calls, same RNG
+        # stream); everything after this point is in freeze_protocol.py.
+        return run_freeze(
+            model=model,
+            arch="stacked",
+            spec=spec,
+            device=device,
+            train_subset=train_subset,
+            test_subset=test_subset,
+            result_root=result_root,
+            run_name=run_name,
+            batch_size=batch_size,
+            organize_interval_samples=organize_interval_samples,
+            record={
+                "arch": "stacked",
+                "dataset": spec.name,
+                "input_dim": spec.input_dim,
+                "num_classes": spec.num_classes,
+                "image_chw": list(spec.image_chw),
+                "layer_dims": list(layer_dims),
+                "head": head,
+                "head_hidden_dims": list(head_hidden_dims),
+                "head_dropout": head_dropout,
+                "discrimination_config": discrimination_config,
+                "init_mode": init_mode,
+                "init_ratio": init_ratio,
+                "init_dataset_scope": init_dataset_scope,
+                "setup": "S0",
+            },
+            enable_analysis=enable_analysis,
+            enable_checkpoints=enable_checkpoints,
+            quiet_train=quiet_train,
+            save_train_log=save_train_log,
+            checkpoint_name=checkpoint_name,
+            checkpoints_dir=checkpoints_dir,
+            seed=seed,
+            analysis_level=analysis_level,
+            run_start=run_start,
+            val_size=val_size,
+            hebbian_epochs=hebbian_epochs,
+            head_epochs=head_epochs,
+            head_batch_size=head_batch_size,
+            head_lr=head_lr,
+            patience=patience,
+        )
 
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.readout_head.parameters(), lr=1e-3)
@@ -379,7 +442,7 @@ def parse_args():
     parser.add_argument("--eval-interval-samples", type=int, default=0)
     parser.add_argument("--disable-analysis", action="store_true")
     parser.add_argument("--disable-checkpoints", action="store_true")
-    parser.add_argument("--training-mode", type=str, default="review", choices=["plain", "review"])
+    parser.add_argument("--training-mode", type=str, default="review", choices=["plain", "review", "freeze"])
     parser.add_argument("--init-mode", type=str, default="random", choices=["random", "dataset"])
     parser.add_argument("--init-ratio", type=float, default=0.25)
     parser.add_argument("--init-dataset-scope", type=str, default="full", choices=["full", "subset"])
@@ -399,6 +462,7 @@ def parse_args():
     parser.add_argument("--analysis-level", type=str, default="lean", choices=list(ANALYSIS_LEVELS),
                         help="lean (default): final checkpoint + final weight grid + metrics.csv. "
                              "full: also every-step/every-organize PNGs and checkpoints (GBs; debugging).")
+    add_freeze_cli_args(parser)
     return parser.parse_args()
 
 
@@ -437,4 +501,10 @@ if __name__ == "__main__":
         checkpoint_name=args.checkpoint_name,
         seed=args.seed,
         analysis_level=args.analysis_level,
+        val_size=args.val_size,
+        hebbian_epochs=args.hebbian_epochs,
+        head_epochs=args.head_epochs,
+        head_batch_size=args.head_batch_size,
+        head_lr=args.head_lr,
+        patience=args.patience,
     )

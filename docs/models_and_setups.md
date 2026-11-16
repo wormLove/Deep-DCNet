@@ -18,7 +18,16 @@ Variants of S0 requested by Prof. Yu will be added as S0a, S0b, … with a row h
 |---|---|---|
 | `plain` | One pass over the training set. Each batch: Hebbian layer learns, head takes one backprop step; `organize()` every N images. | In use |
 | `review` | `plain` + replay: once a layer is stable, the head also trains on up to 256 cached past activations per step (misclassified ones repeated). Lin's main mode. | In use |
-| `freeze` | Train the Hebbian layer(s) first, freeze them, save features, then train the head for several epochs. | Planned (Plan 03) |
+| `freeze` | Hebbian layer(s) first without labels, freeze, then train the head on the frozen features with early stopping. | In use (main protocol from Plan 03) |
+
+`freeze` in detail (`training/freeze_protocol.py`, script `experiments/2026-11-15_freeze_baselines.py`):
+1. **Validation split:** the last 5,000 images of a seeded permutation of the training set (`val_size`; 0 = no split). The test set is never used for any choice.
+2. **Hebbian phase:** one pass over the rest (`hebbian_epochs` 1), `organize()` every N images plus a final one, as in `plain` but without the head. Stacked: layer by layer (L0, freeze, then L1 on frozen L0's output), not the stability-gated cascade.
+3. **Freeze + features:** layers to eval mode, no gradients, nothing organizes again; fit / val / test pass through them once and the features stay in memory.
+4. **Head:** Adam (lr 1e-3), batch 128, up to 30 epochs, early stopping after 5 epochs without a better val accuracy; the best-val epoch's head is kept. Reported accuracy = that head's test accuracy. Per-epoch curves in `head_metrics.csv`.
+5. `experiments/head_on_frozen.py` trains another head on a finished freeze run's frozen layers in minutes (no Hebbian retraining).
+
+With `--val-size 0` the Hebbian phase sees the same images in the same order as `plain`, so a single-layer freeze run learns the identical layer as the plain run with the readout head (`tools/compare_layers.py`).
 
 Only the head (and the optional integration layer) is trained with backprop; Hebbian layers never get gradients.
 

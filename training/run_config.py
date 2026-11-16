@@ -39,8 +39,13 @@ def write_final_eval(
     train_wall_sec: float,
     total_wall_sec: float,
     device,
+    extra: Optional[Dict[str, Any]] = None,
 ) -> Path:
-    """final_eval.json next to run_config.json: the run's headline numbers + cost."""
+    """
+    final_eval.json next to run_config.json: the run's headline numbers + cost.
+    `extra` adds protocol-specific fields (e.g. the freeze protocol's
+    best_val_acc, best_epoch, per-phase wall times) after the standard ones.
+    """
     from training.provenance import now_iso, peak_gpu_mem_mb  # local import: keeps this module light
 
     path = Path(run_dir) / FINAL_EVAL_FILENAME
@@ -55,6 +60,8 @@ def write_final_eval(
         "peak_gpu_mem_mb": peak_gpu_mem_mb(device),
         "finished_at": now_iso(),
     }
+    if extra:
+        record.update(extra)
     with open(path, "w", encoding="utf-8") as f:
         json.dump(record, f, indent=2)
     return path

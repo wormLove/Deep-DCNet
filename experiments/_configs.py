@@ -22,6 +22,8 @@ tools/build_results_index.py can group them by stripping _s<seed>.
 """
 import argparse
 
+from training.freeze_protocol import FREEZE_DEFAULTS
+
 FULL = dict(
     num_train_samples=None,   # None = the whole training split (60k MNIST/Fashion, 50k CIFAR-10)
     num_test_samples=None,    # None = the whole test split (10k)
@@ -68,3 +70,50 @@ def run_size(args):
     if args.smoke:
         return dict(SMOKE), tag + "_smoke", tag + "_smoke"
     return dict(FULL), tag, tag
+
+
+# ---------------------------------------------------------------------------
+# Freeze-then-train protocol (Plan 03; training/freeze_protocol.py).
+# FREEZE_FULL is the protocol's own default; SMOKE only shrinks the val split
+# and the number of head epochs. Used by 2026-11-15_freeze_baselines.py and
+# head_on_frozen.py.
+# ---------------------------------------------------------------------------
+FREEZE_FULL = dict(FREEZE_DEFAULTS)
+FREEZE_SMOKE = dict(FREEZE_DEFAULTS, val_size=64, head_epochs=3)
+
+# A value that differs from the size's default is written into the run name
+# (before _s<seed>), e.g. freeze_mnist_single_layer_readout_val0_s33_smoke, so
+# such a run never shares a RESULT/ folder with - or is averaged in the
+# results index together with - the default configuration.
+_FREEZE_FLAGS = {
+    # key: (CLI flag, type, run-name tag)
+    "val_size": ("--val-size", int, "val"),
+    "hebbian_epochs": ("--hebbian-epochs", int, "heb"),
+    "head_epochs": ("--head-epochs", int, "hep"),
+    "head_batch_size": ("--head-batch-size", int, "hbs"),
+    "head_lr": ("--head-lr", float, "hlr"),
+    "patience": ("--patience", int, "pat"),
+}
+
+
+def add_freeze_args(parser, keys=tuple(_FREEZE_FLAGS)) -> None:
+    """Optional overrides of the freeze defaults (default None = use FREEZE_FULL / FREEZE_SMOKE)."""
+    for key in keys:
+        flag, typ, _ = _FREEZE_FLAGS[key]
+        parser.add_argument(flag, dest=key, type=typ, default=None,
+                            help=f"override {key} (FULL default {FREEZE_FULL[key]}, SMOKE {FREEZE_SMOKE[key]}); "
+                                 "a non-default value is added to the run name")
+
+
+def freeze_params(args, keys=tuple(_FREEZE_FLAGS)):
+    """Returns (freeze kwargs for this run size, run-name tag like '_val0' or '')."""
+    defaults = FREEZE_SMOKE if args.smoke else FREEZE_FULL
+    params, tag = {}, ""
+    for key in keys:
+        value = getattr(args, key, None)
+        if value is None:
+            value = defaults[key]
+        elif value != defaults[key]:
+            tag += f"_{_FREEZE_FLAGS[key][2]}{value:g}" if isinstance(value, float) else f"_{_FREEZE_FLAGS[key][2]}{value}"
+        params[key] = value
+    return params, tag

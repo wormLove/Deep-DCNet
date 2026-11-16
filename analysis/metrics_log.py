@@ -8,6 +8,9 @@ analysis level with a few numbers per layer that are easy to plot later.
 The file is rewritten from memory on every row (it is small: ~60 rows per
 full run), so a column that first appears in a later row (e.g. test_acc on
 an eval organize) still gets a header, with blanks in the earlier rows.
+
+`filename` lets the same writer produce other small per-run tables, e.g.
+head_metrics.csv (one row per head epoch) in the freeze protocol.
 """
 import csv
 from pathlib import Path
@@ -17,8 +20,8 @@ METRICS_FILENAME = "metrics.csv"
 
 
 class MetricsLog:
-    def __init__(self, run_dir):
-        self.path = Path(run_dir) / METRICS_FILENAME
+    def __init__(self, run_dir, filename: str = METRICS_FILENAME):
+        self.path = Path(run_dir) / filename
         self.rows: List[Dict[str, Any]] = []
         self.fieldnames: List[str] = []
 

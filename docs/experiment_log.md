@@ -12,6 +12,13 @@ Newest first. One entry per batch of runs or work session.
 
 ---
 
+### 2026-11-15 — Freeze-then-train protocol added
+- **What:** Plan 03, code only. New protocol `freeze` (`training/freeze_protocol.py`): 5,000-image validation split, Hebbian layer(s) learned without labels (stacked: layer by layer), frozen, features cached, head trained up to 30 epochs with early stopping on val accuracy. `--training-mode freeze` in both training entry points; new scripts `experiments/2026-11-15_freeze_baselines.py`, `experiments/head_on_frozen.py` (new head on a finished run's frozen layers) and `tools/compare_layers.py`. `plain` and `review` unchanged.
+- **Runs:** none yet · commit: _(fill in)_
+- **Result:** —
+- **Takeaway:** —
+- **Next:** Plan 03 checks on Pioneer: equivalence with `plain` at `--val-size 0`, smoke runs, first full MNIST numbers (reference, one pass: single + readout 94.01, single + MLP 96.17, stacked 93.93).
+
 ### 2026-11-15 — Pioneer on L40S with pip PyTorch
 - **What:** Plan 02c. pip-installed torch 2.1.2 + cu121 in its own venv (same torch version as the module, all current GPU types); GPU type pinned to L40S; failed runs now marked `failed` in `final_eval.json` and the results index.
 - **Runs:** smoke ×3 and `single_layer_baseline_s33` (full) · Pioneer · NVIDIA L40S (gput064) · a17ce60
