@@ -81,7 +81,7 @@ class PlateauDriftMonitor:
     The drift is EffectiveOperatorDriftMonitor's. Its level is set by the organizer's
     step size and the lateral mask's boundary swaps, not by how stale cached activity
     is, so only its trend is used. After each organize the plateau test passes if the
-    median drift over the last ``window`` organizes is within ``allowed_decrease``
+    median drift over the last ``window`` organizes is within ``allowed_change``
     (relative, either way) of the median over the ``window`` organizes before: a drift
     still falling or rising beyond that is not a plateau. Review becomes stable after
     ``k_enter`` consecutive passes; the median of the last window at that organize
@@ -93,17 +93,17 @@ class PlateauDriftMonitor:
         self,
         name: str = "EffectiveOperator",
         window: int = 10,
-        allowed_decrease: float = 0.1,
+        allowed_change: float = 0.1,
         k_enter: int = 2,
         exit_ratio: float = 2.0,
     ):
         if window <= 0 or k_enter <= 0:
             raise ValueError("window and k_enter must be positive.")
-        if not 0.0 <= allowed_decrease < 1.0 or exit_ratio < 1.0:
-            raise ValueError("Expected 0 <= allowed_decrease < 1 and exit_ratio >= 1.")
+        if not 0.0 <= allowed_change < 1.0 or exit_ratio < 1.0:
+            raise ValueError("Expected 0 <= allowed_change < 1 and exit_ratio >= 1.")
         self.name = name
         self.window = int(window)
-        self.allowed_decrease = float(allowed_decrease)
+        self.allowed_change = float(allowed_change)
         self.k_enter = int(k_enter)
         self.exit_ratio = float(exit_ratio)
         self.reset()
@@ -128,7 +128,7 @@ class PlateauDriftMonitor:
             history = list(self.drift_history)
             recent = statistics.median(history[self.window :])
             before = statistics.median(history[: self.window])
-            passed = (1.0 - self.allowed_decrease) * before <= recent <= (1.0 + self.allowed_decrease) * before
+            passed = (1.0 - self.allowed_change) * before <= recent <= (1.0 + self.allowed_change) * before
         self.stable_count = self.stable_count + 1 if passed else 0
 
         previous_state = self.state

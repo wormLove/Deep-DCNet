@@ -53,9 +53,12 @@ The organize step moves each neuron's weight column along the normalized
 residual of its potentials:
 
 ```text
-potential_diff = P_hebb - W P_antihebb
-W_new = (1 - lr) W + lr * normalize(potential_diff)
+potential_residual = P_hebb - W P_antihebb
+W_new = (1 - lr) W + lr * normalize(potential_residual)
 ```
+
+`potential_residual` is the moving average of `(x - W y) y^T` under the current
+weights: the reconstruction residual, correlated with the activity.
 
 followed, as before, by clamping to non-negative values, re-initializing empty
 columns and normalizing columns. The step size is set only by the neuron's
@@ -92,16 +95,17 @@ not a plateau.
 
 | Setting | Default | Previous behaviour |
 |---|---|---|
-| `review_gate` | `"plateau"` (`window` 10, `allowed_decrease` 0.1, `k_enter` 2, `exit_ratio` 2.0) | `"absolute"` (`tau_enter` 0.01, `tau_exit` 0.02, `k_enter` 2) |
+| `review_gate` | `"plateau"` (`window` 10, `allowed_change` 0.1, `k_enter` 2, `exit_ratio` 2.0) | `"absolute"` (`tau_enter` 0.01, `tau_exit` 0.02, `k_enter` 2) |
 
-`allowed_decrease` is the relative tolerance in both directions.
+`allowed_change` is the relative change of the median allowed in either
+direction.
 
 ## Organize Trigger
 
 The training engines ask an organize trigger when to organize.
 `FixedIntervalTrigger(200)` is the default and reproduces the previous
-behaviour bit for bit; `ScheduledIntervalTrigger` takes an explicit list of
-intervals for studies.
+behaviour bit for bit. Triggers for sleep-timing studies are kept with the
+study records, outside the repository.
 
 ## Validated Default
 
@@ -138,7 +142,7 @@ evaluated.
 - `models/biological_classifier.py`: `review_gate`, `review_gate_config`,
   checkpoint metadata (`organize_direction_v1`); `load_model` accepts
   checkpoints without `organizer.beta_accum`.
-- `core/organize_trigger.py`: `FixedIntervalTrigger`, `ScheduledIntervalTrigger`.
+- `core/organize_trigger.py`: `FixedIntervalTrigger`.
 - `training/training_engines.py`: organize timing through the trigger.
 - `training/train_classifier.py`, `training/train_discrimination.py`: `beta`,
   `correction_beta`.

@@ -81,7 +81,9 @@ class DiscriminationOrganizer(nn.Module):
 
     @torch.no_grad()
     def organize(self, weights: torch.Tensor) -> torch.Tensor:
-        potential_diff = self.potential_hebb - torch.matmul(weights, self.potential_antihebb)
+        # The EMA of (x - W y) y^T under the current weights: the reconstruction
+        # residual, correlated with the activity.
+        potential_residual = self.potential_hebb - torch.matmul(weights, self.potential_antihebb)
         lr_col = self.lr_vec.unsqueeze(0)
         if self.organize_step == "direction":
             # Only the direction of the residual is used. Its length depends on input
@@ -90,11 +92,11 @@ class DiscriminationOrganizer(nn.Module):
             # the learning rate's alone. A neuron with no potential has no direction and
             # keeps its weights. The fixed point (residual parallel to the weights) is
             # the same as with the unnormalized residual.
-            direction = F.normalize(potential_diff, p=self.weight_norm_p, dim=0)
+            direction = F.normalize(potential_residual, p=self.weight_norm_p, dim=0)
             return (1.0 - lr_col) * weights + lr_col * direction
 
         correction_factor = 1.0 / (1.0 - self.beta_accum.clamp_max(1.0 - 1e-12))
-        updated_weights = (1.0 - lr_col) * weights + (correction_factor * lr_col) * potential_diff
+        updated_weights = (1.0 - lr_col) * weights + (correction_factor * lr_col) * potential_residual
         self.beta_accum.mul_(self.correction_beta)
         return updated_weights
 

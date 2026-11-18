@@ -39,7 +39,7 @@ class PlateauDriftMonitorTest(unittest.TestCase):
             self.assertEqual(plateau.last_drift, absolute.last_drift)
 
     def test_opens_after_k_enter_passes_once_the_drift_stops_falling(self):
-        monitor = PlateauDriftMonitor(window=3, allowed_decrease=0.1, k_enter=2)
+        monitor = PlateauDriftMonitor(window=3, allowed_change=0.1, k_enter=2)
 
         states = _states(monitor, _operators(FALLING_THEN_FLAT))
 
@@ -50,14 +50,14 @@ class PlateauDriftMonitorTest(unittest.TestCase):
 
     def test_opening_does_not_depend_on_the_drift_level(self):
         for level in (1.0, 20.0):
-            monitor = PlateauDriftMonitor(window=3, allowed_decrease=0.1, k_enter=2)
+            monitor = PlateauDriftMonitor(window=3, allowed_change=0.1, k_enter=2)
 
             states = _states(monitor, _operators([level * d for d in FALLING_THEN_FLAT]))
 
             self.assertEqual(states.index("stable"), 10, level)
 
     def test_closes_above_exit_ratio_times_the_reference(self):
-        monitor = PlateauDriftMonitor(window=3, allowed_decrease=0.1, k_enter=2, exit_ratio=2.0)
+        monitor = PlateauDriftMonitor(window=3, allowed_change=0.1, k_enter=2, exit_ratio=2.0)
         operators = _operators(FALLING_THEN_FLAT + [0.009, 0.011])
 
         states = _states(monitor, operators)
@@ -67,7 +67,7 @@ class PlateauDriftMonitorTest(unittest.TestCase):
         self.assertTrue(monitor.state_changed)
 
     def test_a_rising_drift_is_not_a_plateau(self):
-        monitor = PlateauDriftMonitor(window=3, allowed_decrease=0.1, k_enter=2)
+        monitor = PlateauDriftMonitor(window=3, allowed_change=0.1, k_enter=2)
 
         # Falling, then doubling: a one-sided "not falling" test would open at the 8th drift.
         states = _states(monitor, _operators([0.08, 0.04, 0.02, 0.01, 0.02, 0.04, 0.08, 0.16, 0.32, 0.64]))
@@ -75,7 +75,7 @@ class PlateauDriftMonitorTest(unittest.TestCase):
         self.assertNotIn("stable", states)
 
     def test_does_not_reopen_while_the_drift_is_still_rising(self):
-        monitor = PlateauDriftMonitor(window=3, allowed_decrease=0.1, k_enter=2, exit_ratio=2.0)
+        monitor = PlateauDriftMonitor(window=3, allowed_change=0.1, k_enter=2, exit_ratio=2.0)
 
         states = _states(monitor, _operators(FALLING_THEN_FLAT + [0.011, 0.02, 0.04, 0.08]))
 
@@ -101,7 +101,7 @@ class ClassifierReviewGateTest(unittest.TestCase):
         self.assertIsInstance(model.monitor_last_dl, PlateauDriftMonitor)
         self.assertEqual(
             model.review_gate_config,
-            {"review_gate": "plateau", "window": 10, "allowed_decrease": 0.1, "k_enter": 2, "exit_ratio": 2.0},
+            {"review_gate": "plateau", "window": 10, "allowed_change": 0.1, "k_enter": 2, "exit_ratio": 2.0},
         )
 
     def test_absolute_gate_is_the_previous_monitor(self):

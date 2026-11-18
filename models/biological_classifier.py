@@ -12,7 +12,7 @@ from models.readout import ReadoutHead
 # lateral drift stops falling; "absolute" (the previous gate) once it falls below
 # tau_enter.
 REVIEW_GATES = {
-    "plateau": (PlateauDriftMonitor, ("window", "allowed_decrease", "k_enter", "exit_ratio")),
+    "plateau": (PlateauDriftMonitor, ("window", "allowed_change", "k_enter", "exit_ratio")),
     "absolute": (EffectiveOperatorDriftMonitor, ("tau_enter", "tau_exit", "k_enter")),
 }
 
