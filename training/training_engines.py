@@ -5,6 +5,8 @@ import torch
 import torch.nn as nn
 from tqdm import tqdm
 
+from core.organize_trigger import FixedIntervalTrigger
+
 
 @torch.no_grad()
 def evaluate_classifier(model, loader, device: torch.device) -> float:
@@ -33,6 +35,7 @@ def train_classifier_plain(
     optimizer,
     organize_interval_samples: int = 200,
     eval_interval_samples: int = 0,
+    organize_trigger=None,
     analysis=None,
     enable_checkpoints: bool = True,
     debug_stats: bool = False,
@@ -41,6 +44,8 @@ def train_classifier_plain(
     eval_logger: Optional[Callable[[str, int, int, float], None]] = None,
     train_logger: Optional[Callable[[str], None]] = None,
 ):
+    # When to organize; organize_interval_samples is used only without a trigger.
+    trigger = organize_trigger if organize_trigger is not None else FixedIntervalTrigger(organize_interval_samples)
     total_steps = 0
     total_samples = 0
     last_organize_samples = 0
@@ -67,9 +72,10 @@ def train_classifier_plain(
             analysis.save_step_state(model, total_steps)
         progress.set_postfix(step=total_steps, samples=total_samples, loss=f"{last_loss:.4f}")
 
-        if total_samples - last_organize_samples >= organize_interval_samples:
+        if trigger.due(total_samples - last_organize_samples, model):
             weights_before = model.discrimination_layer.neuron_weights.detach().clone()
             model.organize()
+            trigger.organized()
             last_organize_samples = total_samples
             organize_count += 1
             diag = model.diagnostics()
@@ -113,6 +119,7 @@ def train_classifier_plain(
     if total_samples > last_organize_samples:
         weights_before = model.discrimination_layer.neuron_weights.detach().clone()
         model.organize()
+        trigger.organized()
         organize_count += 1
         diag = model.diagnostics()
         if analysis is not None:
@@ -161,6 +168,7 @@ def train_classifier_with_review(
     optimizer,
     organize_interval_samples: int = 200,
     eval_interval_samples: int = 0,
+    organize_trigger=None,
     analysis=None,
     enable_checkpoints: bool = True,
     debug_stats: bool = False,
@@ -171,6 +179,8 @@ def train_classifier_with_review(
     eval_logger: Optional[Callable[[str, int, int, float], None]] = None,
     train_logger: Optional[Callable[[str], None]] = None,
 ):
+    # When to organize; organize_interval_samples is used only without a trigger.
+    trigger = organize_trigger if organize_trigger is not None else FixedIntervalTrigger(organize_interval_samples)
     total_steps = 0
     total_samples = 0
     last_organize_samples = 0
@@ -222,10 +232,11 @@ def train_classifier_with_review(
             analysis.save_step_state(model, total_steps)
         progress.set_postfix(step=total_steps, samples=total_samples, loss=f"{last_loss:.4f}")
 
-        if total_samples - last_organize_samples >= organize_interval_samples:
+        if trigger.due(total_samples - last_organize_samples, model):
             weights_before = model.discrimination_layer.neuron_weights.detach().clone()
             model.organize()
             model.review_after_organize()
+            trigger.organized()
             last_organize_samples = total_samples
             organize_count += 1
             diag = model.diagnostics()
@@ -272,6 +283,7 @@ def train_classifier_with_review(
         weights_before = model.discrimination_layer.neuron_weights.detach().clone()
         model.organize()
         model.review_after_organize()
+        trigger.organized()
         organize_count += 1
         diag = model.diagnostics()
         if analysis is not None:
