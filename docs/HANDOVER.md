@@ -2,7 +2,7 @@
 
 Aishani Patil · M.S. CS (AI), CWRU · advisor Prof. Ron Yu · state as of 2026-11-19 (code at commit `eb45afc`)
 
-This guide gets you from zero to running and tracking experiments on this branch. Read sections 1–5 once, then use the rest as reference.
+Guide for running and tracking experiments on this branch. Read sections 1–5 once, then use the rest as reference. Section 13 summarizes the work done on this branch.
 
 ---
 
@@ -206,3 +206,26 @@ Freezing closes most of the readout–MLP gap (2.16 → 0.31 points), so the Sep
 - **Prof. Ron Yu** (CWRU): advisor; sets the research agenda.
 - **Lin (Junlin)**: author of Deep-DCNet and owner of `main` and the Pioneer folder; ask him about the math and Pioneer access.
 - **Aishani Patil**: author of `branch_Aishani`.
+
+## 13. Summary of work done (Aishani, September–November 2026)
+
+| When | What | Where |
+|---|---|---|
+| Sep 2026 | **Swappable classification heads (point #5):** a traditional MLP head next to the linear readout, chosen with `--head` | `modules/classifier_heads.py` |
+| Sep 2026 | **Code reorganization:** `models/` split into `architectures/` + `modules/`; reusable named layer checkpoints | `architectures/`, `core/checkpointing.py` |
+| Sep 2026 | **Stacked architecture:** two or more discrimination layers; each starts learning once the layer below is stable; fixes so gated-off layers don't accumulate Hebbian updates | `architectures/stacked.py` |
+| Sep 2026 | **Dated experiment scripts** with full-size and `--smoke` runs, shared seed | `experiments/` |
+| Sep 2026 | **More datasets (point #6):** dataset registry (MNIST, Fashion-MNIST, KMNIST, CIFAR-10, CIFAR-10 gray); input size and classes read from the registry | `training/datasets.py` |
+| Sep 2026 | **Robustness (point #4):** Gaussian noise, salt & pepper, occlusion and shift at 13 levels, same corrupted images for every model | `core/perturbations.py`, `analysis/robustness.py` |
+| Sep 2026 | **First full runs:** 3 configurations × MNIST, Fashion-MNIST, CIFAR-10 + robustness sweeps on Markov | `results.md` (archived), `prior_experiments/deep_dcnet_sept_2026/` |
+| Oct 2026 | **Results review:** re-checked every September number against raw logs; found the stacked model matched (not trailed) the single layer, and that the runs were single-seed with mixed training modes | `experiment_log.md` |
+| Oct 2026 | **Math versions:** went through Lin's history on `main` and defined setups S0 / S1 / S2 so old and new math can be compared without merging | `models_and_setups.md` §1 |
+| Nov 2026 | **Git-based cluster workflow:** Pioneer and Markov run from git clones; job header records commit, GPU and versions | `hpc/pioneer/`, `hpc/run_experiment.slurm` |
+| Nov 2026 | **Lean, traceable runs:** run folders down from 4–14 GB to 45–110 MB; every run records config, seed, setup, commit, cluster, GPU; `metrics.csv`, `final_eval.json`; seed in run names; failed runs marked | `analysis/analysis_engine.py`, `training/provenance.py`, `training/run_config.py` |
+| Nov 2026 | **Pioneer on L40S:** pip PyTorch environment (the cluster module only ran on RTX 2080s); queue wait ~1 day → seconds; full MNIST run ~4 min; identical results across clusters, GPUs and torch versions | `hpc/pioneer/` |
+| Nov 2026 | **Results tracking:** results index with mean ± std over seeds that writes the table in `results.md`; results, experiment log and definitions docs | `tools/build_results_index.py`, `docs/` |
+| Nov 2026 | **Freeze-then-train protocol:** Hebbian layers learn without labels, are frozen, then the head trains on saved features with a validation split and early stopping; verified that the learned layer is identical to the one-pass layer; new heads can be trained on a frozen layer in seconds | `training/freeze_protocol.py`, `experiments/2026-11-15_freeze_baselines.py`, `experiments/head_on_frozen.py`, `tools/compare_layers.py` |
+| Nov 2026 | **Handover:** this guide, full September robustness tables and archived September logs | `docs/` |
+
+Main results so far are in section 9 and `results.md`.
+
