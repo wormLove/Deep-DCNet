@@ -1,0 +1,71 @@
+[run_name] point6_cifar10_single_layer_traditional_mlp
+[device] cuda
+[dataset] cifar10 (input_dim=3072, num_classes=10)
+[hidden_dim] 2000
+[train_subset] 50000
+[test_subset] 10000
+[batch_size] 32
+[organize_interval_samples] 1000
+[eval_interval_samples] 5000
+[training_mode] plain
+[init_mode] random
+[head] traditional_mlp
+[head_hidden_dims] (256,)
+[head_dropout] 0.2
+[integration_layer] disabled
+[result_dir] /mnt/vstor/courses/wids/axp1343/DCNet_Updated/Deep-DCNet/RESULT/point6_cifar10_single_layer_traditional_mlp/2026-09-18_22-27-43
+[eval_log] /mnt/vstor/courses/wids/axp1343/DCNet_Updated/Deep-DCNet/RESULT/point6_cifar10_single_layer_traditional_mlp/2026-09-18_22-27-43/eval_log.txt
+[train_log] /mnt/vstor/courses/wids/axp1343/DCNet_Updated/Deep-DCNet/RESULT/point6_cifar10_single_layer_traditional_mlp/2026-09-18_22-27-43/train_log.txt
+[checkpoint_name] point6_cifar10_single_layer_traditional_mlp
+[eval step 0] acc=9.96%
+[organize 1] step=32, samples=1024, loss=2.279105, weight_shift=15.539907
+[organize 2] step=64, samples=2048, loss=1.902966, weight_shift=4.425739
+[organize 3] step=96, samples=3072, loss=1.928594, weight_shift=1.506527
+[organize 4] step=128, samples=4096, loss=1.820235, weight_shift=0.941982
+[organize 5] step=160, samples=5120, loss=1.736927, weight_shift=0.626177, acc=33.82%
+[organize 6] step=192, samples=6144, loss=1.851677, weight_shift=0.477454
+[organize 7] step=224, samples=7168, loss=1.701840, weight_shift=0.391864
+[organize 8] step=256, samples=8192, loss=2.159116, weight_shift=0.300518
+[organize 9] step=288, samples=9216, loss=2.005246, weight_shift=0.258044
+[organize 10] step=320, samples=10240, loss=1.591262, weight_shift=0.220999, acc=36.04%
+[organize 11] step=352, samples=11264, loss=1.680629, weight_shift=0.190277
+[organize 12] step=384, samples=12288, loss=1.958528, weight_shift=0.172400
+[organize 13] step=416, samples=13312, loss=1.719922, weight_shift=0.149079
+[organize 14] step=448, samples=14336, loss=1.796422, weight_shift=0.127211
+[organize 15] step=480, samples=15360, loss=1.667059, weight_shift=0.112621, acc=37.43%
+[organize 16] step=512, samples=16384, loss=1.880625, weight_shift=0.096968
+[organize 17] step=544, samples=17408, loss=1.632255, weight_shift=0.099000
+[organize 18] step=576, samples=18432, loss=1.678896, weight_shift=0.082274
+[organize 19] step=608, samples=19456, loss=1.929842, weight_shift=0.075003
+[organize 20] step=640, samples=20480, loss=1.483209, weight_shift=0.069948, acc=38.55%
+[organize 21] step=672, samples=21504, loss=1.786413, weight_shift=0.061665
+[organize 22] step=704, samples=22528, loss=1.691071, weight_shift=0.056800
+[organize 23] step=736, samples=23552, loss=1.711061, weight_shift=0.056385
+[organize 24] step=768, samples=24576, loss=1.786313, weight_shift=0.051499
+[organize 25] step=800, samples=25600, loss=1.835133, weight_shift=0.045255, acc=38.78%
+[organize 26] step=832, samples=26624, loss=1.897428, weight_shift=0.041967
+[organize 27] step=864, samples=27648, loss=1.622552, weight_shift=0.037427
+[organize 28] step=896, samples=28672, loss=1.761412, weight_shift=0.036475
+[organize 29] step=928, samples=29696, loss=1.789925, weight_shift=0.038072
+[organize 30] step=960, samples=30720, loss=1.703725, weight_shift=0.042011, acc=39.68%
+[organize 31] step=992, samples=31744, loss=1.936435, weight_shift=0.034455
+[organize 32] step=1024, samples=32768, loss=2.005597, weight_shift=0.030585
+[organize 33] step=1056, samples=33792, loss=1.842084, weight_shift=0.027856
+[organize 34] step=1088, samples=34816, loss=1.707741, weight_shift=0.024317
+[organize 35] step=1120, samples=35840, loss=1.826345, weight_shift=0.021723, acc=38.74%
+[organize 36] step=1152, samples=36864, loss=1.814258, weight_shift=0.020184
+[organize 37] step=1184, samples=37888, loss=1.724485, weight_shift=0.018472
+[organize 38] step=1216, samples=38912, loss=1.736988, weight_shift=0.018238
+[organize 39] step=1248, samples=39936, loss=1.782866, weight_shift=0.017410
+[organize 40] step=1280, samples=40960, loss=1.860420, weight_shift=0.016461, acc=39.66%
+[organize 41] step=1312, samples=41984, loss=1.597811, weight_shift=0.015673
+[organize 42] step=1344, samples=43008, loss=1.565038, weight_shift=0.014903
+[organize 43] step=1376, samples=44032, loss=1.647724, weight_shift=0.014349
+[organize 44] step=1408, samples=45056, loss=1.766919, weight_shift=0.024860
+[organize 45] step=1440, samples=46080, loss=1.739185, weight_shift=0.020281, acc=39.73%
+[organize 46] step=1472, samples=47104, loss=1.872030, weight_shift=0.012887
+[organize 47] step=1504, samples=48128, loss=1.536471, weight_shift=0.012852
+[organize 48] step=1536, samples=49152, loss=1.649114, weight_shift=0.018278
+[final organize] step=1563, samples=50000, loss=1.589166, weight_shift=0.019496, acc=39.17%
+[final eval] acc=39.17%
+[checkpoint] saved reusable discrimination-layer checkpoint 'point6_cifar10_single_layer_traditional_mlp' -> /mnt/vstor/courses/wids/axp1343/DCNet_Updated/Deep-DCNet/checkpoints/point6_cifar10_single_layer_traditional_mlp.pt

@@ -1,0 +1,53 @@
+{
+  "arch": "single_layer",
+  "batch_size": 32,
+  "dataset": "fashion_mnist",
+  "discrimination_config": {
+    "beta": 0.995,
+    "half_count": 100.0,
+    "lr_gate_n": 0.5,
+    "lr_init": 0.99,
+    "max_lr": 0.99,
+    "min_lr": 0.001,
+    "non_negative": true,
+    "optimizer_estimate_steps": 50,
+    "optimizer_gain_factor": 10.0,
+    "optimizer_lambda": 0.1,
+    "optimizer_max_iters": 1000,
+    "recover_alpha": 0.2,
+    "recover_step": 0.05,
+    "sparsity": 0.05,
+    "state_cache_capacity": 200,
+    "std_scale": 1.5,
+    "strength_decay_power": 2.0,
+    "strength_decay_scale": 1.0,
+    "strength_decay_start": 5,
+    "strength_gate_k": 1.0,
+    "strong_bonus": 0.5,
+    "strong_bonus_cap": 3.0,
+    "strong_bonus_power": 2.0,
+    "threshold_factor": 1.0,
+    "use_cooldown": false
+  },
+  "head": "readout",
+  "head_dropout": 0.2,
+  "head_hidden_dims": [
+    256
+  ],
+  "hidden_dim": 2000,
+  "image_chw": [
+    1,
+    28,
+    28
+  ],
+  "init_mode": "random",
+  "input_dim": 784,
+  "integration_activation": "relu",
+  "integration_dim": null,
+  "num_classes": 10,
+  "num_test_samples": 10000,
+  "num_train_samples": 60000,
+  "organize_interval_samples": 1000,
+  "run_name": "point6_fashion_mnist_single_layer_readout",
+  "training_mode": "plain"
+}

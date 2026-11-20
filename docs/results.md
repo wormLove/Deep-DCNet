@@ -4,11 +4,14 @@ Accuracy on the full test set, in %, as mean ± std over seeds. The table betwee
 
 ## Current results
 <!-- AUTO-RESULTS:BEGIN -->
-Generated 2026-11-15 from `RESULT` · 1 run
+Generated 2026-11-15 from `RESULT` · 4 runs
 
 | Dataset | Architecture | Head | Setup | Protocol | Seeds | Accuracy (mean ± std) | Min–max | Runs |
 |---|---|---|---|---|---|---|---|---|
+| mnist | single_layer | readout | S0 | freeze | 33 | 96.59 | 96.59–96.59 | `freeze_mnist_single_layer_readout` |
 | mnist | single_layer | readout | S0 | plain | 33 | 94.01 | 94.01–94.01 | `single_layer_baseline` |
+| mnist | single_layer | traditional_mlp | S0 | freeze | 33 | 96.90 | 96.90–96.90 | `freeze_mnist_single_layer_readout_head-traditional_mlp` |
+| mnist | stacked | readout | S0 | freeze | 33 | 95.30 | 95.30–95.30 | `freeze_mnist_stacked_readout` |
 <!-- AUTO-RESULTS:END -->
 
 ## Calibration
@@ -35,4 +38,34 @@ Robustness highlights, MNIST (accuracy % under corruption of the test images):
 | Occlusion 14×14 | 74.77 | 66.26 | 73.23 |
 | Shift ±4 px | 34.90 | 38.17 | 35.06 |
 
-Full robustness tables for all three datasets: `claude/deep_dcnet_handoff.md` (claude.ai Project).
+Full robustness tables (accuracy %, full 10k test set, corruption seed 0). Raw logs: [`prior_experiments/deep_dcnet_sept_2026/`](prior_experiments/deep_dcnet_sept_2026/).
+
+**MNIST**
+
+| Corruption | Level | Single + readout | Single + MLP head | Stacked + readout |
+|---|---|---|---|---|
+| clean | – | 94.01 | 96.17 | 93.93 |
+| gaussian | σ 0.1 / 0.2 / 0.3 / 0.5 | 94.04 / 93.67 / 93.17 / 90.94 | 96.16 / 95.92 / 95.31 / 91.27 | 93.90 / 93.58 / 92.96 / 87.33 |
+| salt & pepper | p 0.05 / 0.1 / 0.2 | 93.92 / 93.52 / 93.00 | 96.06 / 95.52 / 94.94 | 93.88 / 93.48 / 92.74 |
+| occlusion | 6 / 10 / 14 px | 92.17 / 85.55 / 74.77 | 93.69 / 84.70 / 66.26 | 91.98 / 85.51 / 73.23 |
+| shift | ±2 / ±4 px | 66.44 / 34.90 | 71.17 / 38.17 | 65.09 / 35.06 |
+
+**Fashion-MNIST**
+
+| Corruption | Level | Single + readout | Single + MLP head | Stacked + readout |
+|---|---|---|---|---|
+| clean | – | 82.01 | 84.52 | 81.95 |
+| gaussian | σ 0.1 / 0.2 / 0.3 / 0.5 | 81.72 / 81.31 / 80.10 / 73.46 | 84.17 / 83.37 / 81.07 / 70.98 | 81.39 / 81.00 / 79.64 / 73.84 |
+| salt & pepper | p 0.05 / 0.1 / 0.2 | 81.94 / 81.62 / 80.58 | 84.20 / 83.39 / 81.63 | 81.48 / 81.16 / 80.38 |
+| occlusion | 6 / 10 / 14 px | 79.45 / 70.31 / 56.77 | 81.30 / 70.50 / 55.33 | 79.34 / 69.30 / 53.65 |
+| shift | ±2 / ±4 px | 64.61 / 44.21 | 64.08 / 42.39 | 63.67 / 42.68 |
+
+**CIFAR-10**
+
+| Corruption | Level | Single + readout | Single + MLP head | Stacked + readout |
+|---|---|---|---|---|
+| clean | – | 38.00 | 39.17 | 38.26 |
+| gaussian | σ 0.1 / 0.2 / 0.3 / 0.5 | 38.19 / 37.78 / 37.54 / 36.25 | 39.10 / 38.77 / 38.90 / 37.73 | 38.41 / 38.24 / 37.84 / 36.52 |
+| salt & pepper | p 0.05 / 0.1 / 0.2 | 38.10 / 37.65 / 37.18 | 39.19 / 39.19 / 38.70 | 38.14 / 38.30 / 37.78 |
+| occlusion | 6 / 10 / 14 px | 36.24 / 29.26 / 24.44 | 36.85 / 30.00 / 24.82 | 36.10 / 29.35 / 23.91 |
+| shift | ±2 / ±4 px | 29.77 / 24.09 | 30.41 / 25.19 | 29.90 / 23.90 |

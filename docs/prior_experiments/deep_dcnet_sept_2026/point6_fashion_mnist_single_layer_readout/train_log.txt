@@ -1,0 +1,79 @@
+[run_name] point6_fashion_mnist_single_layer_readout
+[device] cuda
+[dataset] fashion_mnist (input_dim=784, num_classes=10)
+[hidden_dim] 2000
+[train_subset] 60000
+[test_subset] 10000
+[batch_size] 32
+[organize_interval_samples] 1000
+[eval_interval_samples] 5000
+[training_mode] plain
+[init_mode] random
+[head] readout
+[integration_layer] disabled
+[result_dir] /mnt/vstor/courses/wids/axp1343/DCNet_Updated/Deep-DCNet/RESULT/point6_fashion_mnist_single_layer_readout/2026-09-18_19-25-58
+[eval_log] /mnt/vstor/courses/wids/axp1343/DCNet_Updated/Deep-DCNet/RESULT/point6_fashion_mnist_single_layer_readout/2026-09-18_19-25-58/eval_log.txt
+[train_log] /mnt/vstor/courses/wids/axp1343/DCNet_Updated/Deep-DCNet/RESULT/point6_fashion_mnist_single_layer_readout/2026-09-18_19-25-58/train_log.txt
+[checkpoint_name] point6_fashion_mnist_single_layer_readout
+[eval step 0] acc=10.70%
+[organize 1] step=32, samples=1024, loss=2.205925, weight_shift=41.601223
+[organize 2] step=64, samples=2048, loss=1.719073, weight_shift=20.027939
+[organize 3] step=96, samples=3072, loss=1.354103, weight_shift=8.224446
+[organize 4] step=128, samples=4096, loss=1.150231, weight_shift=3.512043
+[organize 5] step=160, samples=5120, loss=1.080715, weight_shift=2.133585, acc=75.43%
+[organize 6] step=192, samples=6144, loss=0.989388, weight_shift=1.139291
+[organize 7] step=224, samples=7168, loss=1.101461, weight_shift=0.856791
+[organize 8] step=256, samples=8192, loss=0.875375, weight_shift=0.651002
+[organize 9] step=288, samples=9216, loss=0.868379, weight_shift=0.495647
+[organize 10] step=320, samples=10240, loss=0.761440, weight_shift=0.396686, acc=77.16%
+[organize 11] step=352, samples=11264, loss=0.667425, weight_shift=0.337139
+[organize 12] step=384, samples=12288, loss=0.766588, weight_shift=0.274472
+[organize 13] step=416, samples=13312, loss=0.746199, weight_shift=0.231566
+[organize 14] step=448, samples=14336, loss=0.503841, weight_shift=0.193809
+[organize 15] step=480, samples=15360, loss=0.651052, weight_shift=0.168241, acc=78.67%
+[organize 16] step=512, samples=16384, loss=0.696854, weight_shift=0.154360
+[organize 17] step=544, samples=17408, loss=0.558679, weight_shift=0.138318
+[organize 18] step=576, samples=18432, loss=0.713447, weight_shift=0.126322
+[organize 19] step=608, samples=19456, loss=0.562423, weight_shift=0.107063
+[organize 20] step=640, samples=20480, loss=0.575146, weight_shift=0.090802, acc=79.88%
+[organize 21] step=672, samples=21504, loss=0.600066, weight_shift=0.081491
+[organize 22] step=704, samples=22528, loss=0.442969, weight_shift=0.076820
+[organize 23] step=736, samples=23552, loss=0.515472, weight_shift=0.067605
+[organize 24] step=768, samples=24576, loss=0.710496, weight_shift=0.062584
+[organize 25] step=800, samples=25600, loss=0.545449, weight_shift=0.056223, acc=80.50%
+[organize 26] step=832, samples=26624, loss=0.408203, weight_shift=0.051598
+[organize 27] step=864, samples=27648, loss=0.703690, weight_shift=0.047440
+[organize 28] step=896, samples=28672, loss=0.659182, weight_shift=0.043694
+[organize 29] step=928, samples=29696, loss=0.753730, weight_shift=0.041257
+[organize 30] step=960, samples=30720, loss=0.456083, weight_shift=0.036587, acc=80.78%
+[organize 31] step=992, samples=31744, loss=0.474268, weight_shift=0.034806
+[organize 32] step=1024, samples=32768, loss=0.921382, weight_shift=0.032319
+[organize 33] step=1056, samples=33792, loss=0.636168, weight_shift=0.029698
+[organize 34] step=1088, samples=34816, loss=0.526633, weight_shift=0.027564
+[organize 35] step=1120, samples=35840, loss=0.415390, weight_shift=0.027135, acc=81.06%
+[organize 36] step=1152, samples=36864, loss=0.569243, weight_shift=0.023912
+[organize 37] step=1184, samples=37888, loss=0.483023, weight_shift=0.023211
+[organize 38] step=1216, samples=38912, loss=0.454151, weight_shift=0.021388
+[organize 39] step=1248, samples=39936, loss=0.478932, weight_shift=0.021207
+[organize 40] step=1280, samples=40960, loss=0.432806, weight_shift=0.019929, acc=81.23%
+[organize 41] step=1312, samples=41984, loss=0.774672, weight_shift=0.017981
+[organize 42] step=1344, samples=43008, loss=0.563191, weight_shift=0.018716
+[organize 43] step=1376, samples=44032, loss=0.506022, weight_shift=0.015135
+[organize 44] step=1408, samples=45056, loss=0.785363, weight_shift=0.014375
+[organize 45] step=1440, samples=46080, loss=0.835799, weight_shift=0.013393, acc=81.63%
+[organize 46] step=1472, samples=47104, loss=0.513793, weight_shift=0.012191
+[organize 47] step=1504, samples=48128, loss=0.451523, weight_shift=0.011997
+[organize 48] step=1536, samples=49152, loss=0.296010, weight_shift=0.010752
+[organize 49] step=1568, samples=50176, loss=0.616043, weight_shift=0.009865
+[organize 50] step=1600, samples=51200, loss=0.420848, weight_shift=0.009717, acc=81.55%
+[organize 51] step=1632, samples=52224, loss=0.685929, weight_shift=0.009151
+[organize 52] step=1664, samples=53248, loss=0.293186, weight_shift=0.011081
+[organize 53] step=1696, samples=54272, loss=0.497135, weight_shift=0.008485
+[organize 54] step=1728, samples=55296, loss=0.555567, weight_shift=0.008357
+[organize 55] step=1760, samples=56320, loss=0.494634, weight_shift=0.007656, acc=81.93%
+[organize 56] step=1792, samples=57344, loss=0.594752, weight_shift=0.006976
+[organize 57] step=1824, samples=58368, loss=0.297370, weight_shift=0.006478
+[organize 58] step=1856, samples=59392, loss=0.414696, weight_shift=0.006447
+[final organize] step=1875, samples=60000, loss=0.371393, weight_shift=0.006301, acc=82.01%
+[final eval] acc=82.01%
+[checkpoint] saved reusable discrimination-layer checkpoint 'point6_fashion_mnist_single_layer_readout' -> /mnt/vstor/courses/wids/axp1343/DCNet_Updated/Deep-DCNet/checkpoints/point6_fashion_mnist_single_layer_readout.pt

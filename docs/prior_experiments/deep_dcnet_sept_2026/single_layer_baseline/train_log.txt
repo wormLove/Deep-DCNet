@@ -1,0 +1,79 @@
+[run_name] single_layer_baseline
+[device] cuda
+[dataset] mnist (input_dim=784, num_classes=10)
+[hidden_dim] 2000
+[train_subset] 60000
+[test_subset] 10000
+[batch_size] 32
+[organize_interval_samples] 1000
+[eval_interval_samples] 5000
+[training_mode] plain
+[init_mode] random
+[head] readout
+[integration_layer] disabled
+[result_dir] /mnt/vstor/courses/wids/axp1343/DCNet_Updated/Deep-DCNet/RESULT/single_layer_baseline/2026-09-18_19-25-58
+[eval_log] /mnt/vstor/courses/wids/axp1343/DCNet_Updated/Deep-DCNet/RESULT/single_layer_baseline/2026-09-18_19-25-58/eval_log.txt
+[train_log] /mnt/vstor/courses/wids/axp1343/DCNet_Updated/Deep-DCNet/RESULT/single_layer_baseline/2026-09-18_19-25-58/train_log.txt
+[checkpoint_name] single_layer_h2000_readout
+[eval step 0] acc=11.72%
+[organize 1] step=32, samples=1024, loss=2.250248, weight_shift=47.804775
+[organize 2] step=64, samples=2048, loss=1.853565, weight_shift=14.616271
+[organize 3] step=96, samples=3072, loss=1.606674, weight_shift=4.601276
+[organize 4] step=128, samples=4096, loss=1.324662, weight_shift=2.495202
+[organize 5] step=160, samples=5120, loss=1.206697, weight_shift=1.522517, acc=89.52%
+[organize 6] step=192, samples=6144, loss=1.029333, weight_shift=1.082659
+[organize 7] step=224, samples=7168, loss=0.941567, weight_shift=0.811426
+[organize 8] step=256, samples=8192, loss=0.937567, weight_shift=0.636942
+[organize 9] step=288, samples=9216, loss=1.032283, weight_shift=0.506302
+[organize 10] step=320, samples=10240, loss=0.782031, weight_shift=0.409749, acc=90.93%
+[organize 11] step=352, samples=11264, loss=0.826095, weight_shift=0.339427
+[organize 12] step=384, samples=12288, loss=0.789164, weight_shift=0.283287
+[organize 13] step=416, samples=13312, loss=0.502832, weight_shift=0.236930
+[organize 14] step=448, samples=14336, loss=0.497579, weight_shift=0.200062
+[organize 15] step=480, samples=15360, loss=0.459094, weight_shift=0.170391, acc=91.75%
+[organize 16] step=512, samples=16384, loss=0.535566, weight_shift=0.145441
+[organize 17] step=544, samples=17408, loss=0.385827, weight_shift=0.125827
+[organize 18] step=576, samples=18432, loss=0.479399, weight_shift=0.109132
+[organize 19] step=608, samples=19456, loss=0.473812, weight_shift=0.094857
+[organize 20] step=640, samples=20480, loss=0.432138, weight_shift=0.083932, acc=92.28%
+[organize 21] step=672, samples=21504, loss=0.367394, weight_shift=0.073822
+[organize 22] step=704, samples=22528, loss=0.377599, weight_shift=0.065033
+[organize 23] step=736, samples=23552, loss=0.387067, weight_shift=0.057959
+[organize 24] step=768, samples=24576, loss=0.585947, weight_shift=0.051668
+[organize 25] step=800, samples=25600, loss=0.458876, weight_shift=0.045264, acc=92.73%
+[organize 26] step=832, samples=26624, loss=0.225031, weight_shift=0.040739
+[organize 27] step=864, samples=27648, loss=0.371102, weight_shift=0.036599
+[organize 28] step=896, samples=28672, loss=0.316264, weight_shift=0.032990
+[organize 29] step=928, samples=29696, loss=0.398297, weight_shift=0.030016
+[organize 30] step=960, samples=30720, loss=0.276879, weight_shift=0.027159, acc=92.97%
+[organize 31] step=992, samples=31744, loss=0.230952, weight_shift=0.024536
+[organize 32] step=1024, samples=32768, loss=0.282319, weight_shift=0.022179
+[organize 33] step=1056, samples=33792, loss=0.201532, weight_shift=0.020595
+[organize 34] step=1088, samples=34816, loss=0.285830, weight_shift=0.018261
+[organize 35] step=1120, samples=35840, loss=0.154948, weight_shift=0.016666, acc=93.04%
+[organize 36] step=1152, samples=36864, loss=0.227545, weight_shift=0.015625
+[organize 37] step=1184, samples=37888, loss=0.275798, weight_shift=0.014234
+[organize 38] step=1216, samples=38912, loss=0.349720, weight_shift=0.013133
+[organize 39] step=1248, samples=39936, loss=0.168919, weight_shift=0.012667
+[organize 40] step=1280, samples=40960, loss=0.399630, weight_shift=0.011612, acc=93.27%
+[organize 41] step=1312, samples=41984, loss=0.152017, weight_shift=0.010718
+[organize 42] step=1344, samples=43008, loss=0.133851, weight_shift=0.009980
+[organize 43] step=1376, samples=44032, loss=0.274615, weight_shift=0.009330
+[organize 44] step=1408, samples=45056, loss=0.260421, weight_shift=0.008873
+[organize 45] step=1440, samples=46080, loss=0.319777, weight_shift=0.008661, acc=93.50%
+[organize 46] step=1472, samples=47104, loss=0.161169, weight_shift=0.007954
+[organize 47] step=1504, samples=48128, loss=0.228148, weight_shift=0.007354
+[organize 48] step=1536, samples=49152, loss=0.279931, weight_shift=0.006817
+[organize 49] step=1568, samples=50176, loss=0.477468, weight_shift=0.006330
+[organize 50] step=1600, samples=51200, loss=0.220222, weight_shift=0.006110, acc=93.72%
+[organize 51] step=1632, samples=52224, loss=0.168020, weight_shift=0.005628
+[organize 52] step=1664, samples=53248, loss=0.336236, weight_shift=0.005122
+[organize 53] step=1696, samples=54272, loss=0.292392, weight_shift=0.004893
+[organize 54] step=1728, samples=55296, loss=0.253304, weight_shift=0.004831
+[organize 55] step=1760, samples=56320, loss=0.221675, weight_shift=0.004519, acc=93.89%
+[organize 56] step=1792, samples=57344, loss=0.285905, weight_shift=0.004488
+[organize 57] step=1824, samples=58368, loss=0.213635, weight_shift=0.004267
+[organize 58] step=1856, samples=59392, loss=0.238913, weight_shift=0.003985
+[final organize] step=1875, samples=60000, loss=0.155739, weight_shift=0.003811, acc=94.01%
+[final eval] acc=94.01%
+[checkpoint] saved reusable discrimination-layer checkpoint 'single_layer_h2000_readout' -> /mnt/vstor/courses/wids/axp1343/DCNet_Updated/Deep-DCNet/checkpoints/single_layer_h2000_readout.pt

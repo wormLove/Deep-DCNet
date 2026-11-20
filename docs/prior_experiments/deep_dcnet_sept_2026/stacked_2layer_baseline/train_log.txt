@@ -1,0 +1,81 @@
+[run_name] stacked_2layer_baseline
+[device] cuda
+[dataset] mnist (input_dim=784, num_classes=10)
+[layer_dims] (784, 2000, 2000, 10)
+[num_dl_layers] 2
+[train_subset] 60000
+[test_subset] 10000
+[batch_size] 32
+[organize_interval_samples] 1000
+[eval_interval_samples] 5000
+[training_mode] review
+[init_mode] random
+[head] readout
+[review_per_sample_max] 10.0
+[review_pmax] 0.8
+[review_delta] 0.2
+[review_cache_size] 20000
+[result_dir] /mnt/vstor/courses/wids/axp1343/DCNet_Updated/Deep-DCNet/RESULT/stacked_2layer_baseline/2026-09-18_19-25-58
+[checkpoint_name] stacked_2layer_h2000_readout
+[eval step 0] acc=10.32%
+[organize 1] step=32, samples=1024, loss=2.303041, weight_shifts=[L0=47.872765, L1=0.000000], review_p=[L0=0.000, L1=0.000], cache_sizes=[L0=0, L1=0] | L0(drift=-1.0000,stable=False) L1(drift=-1.0000,stable=False)
+[organize 2] step=64, samples=2048, loss=2.299286, weight_shifts=[L0=14.854608, L1=0.000000], review_p=[L0=0.000, L1=0.000], cache_sizes=[L0=0, L1=0] | L0(drift=0.0552,stable=False) L1(drift=-1.0000,stable=False)
+[organize 3] step=96, samples=3072, loss=2.298360, weight_shifts=[L0=4.730396, L1=0.000015], review_p=[L0=0.000, L1=0.000], cache_sizes=[L0=0, L1=0] | L0(drift=0.0470,stable=True) L1(drift=-1.0000,stable=False)
+[organize 4] step=128, samples=4096, loss=2.301654, weight_shifts=[L0=2.514780, L1=60.439632], review_p=[L0=0.200, L1=0.000], cache_sizes=[L0=1024, L1=0] | L0(drift=0.0375,stable=True) L1(drift=0.9132,stable=False)
+[organize 5] step=160, samples=5120, loss=1.983518, weight_shifts=[L0=1.561725, L1=6.733657], acc=90.33%, review_p=[L0=0.400, L1=0.000], cache_sizes=[L0=2048, L1=0] | L0(drift=0.0289,stable=True) L1(drift=0.6296,stable=False)
+[organize 6] step=192, samples=6144, loss=1.756943, weight_shifts=[L0=1.127347, L1=2.221450], review_p=[L0=0.600, L1=0.000], cache_sizes=[L0=3072, L1=0] | L0(drift=0.0218,stable=True) L1(drift=0.4403,stable=False)
+[organize 7] step=224, samples=7168, loss=1.677166, weight_shifts=[L0=0.832054, L1=1.331459], review_p=[L0=0.800, L1=0.000], cache_sizes=[L0=4096, L1=0] | L0(drift=0.0163,stable=True) L1(drift=0.3086,stable=False)
+[organize 8] step=256, samples=8192, loss=1.627815, weight_shifts=[L0=0.639185, L1=0.915902], review_p=[L0=0.800, L1=0.000], cache_sizes=[L0=5120, L1=0] | L0(drift=0.0121,stable=True) L1(drift=0.2166,stable=False)
+[organize 9] step=288, samples=9216, loss=1.348589, weight_shifts=[L0=0.507876, L1=0.729519], review_p=[L0=0.800, L1=0.000], cache_sizes=[L0=6144, L1=0] | L0(drift=0.0089,stable=True) L1(drift=0.1520,stable=True)
+[organize 10] step=320, samples=10240, loss=1.379562, weight_shifts=[L0=0.409191, L1=0.667916], acc=91.26%, review_p=[L0=0.800, L1=0.200], cache_sizes=[L0=7168, L1=1024] | L0(drift=0.0065,stable=True) L1(drift=0.1068,stable=True)
+[organize 11] step=352, samples=11264, loss=1.129360, weight_shifts=[L0=0.334193, L1=0.477201], review_p=[L0=0.800, L1=0.400], cache_sizes=[L0=8192, L1=2048] | L0(drift=0.0048,stable=True) L1(drift=0.0751,stable=True)
+[organize 12] step=384, samples=12288, loss=1.100670, weight_shifts=[L0=0.278784, L1=0.399642], review_p=[L0=0.800, L1=0.600], cache_sizes=[L0=9216, L1=3072] | L0(drift=0.0035,stable=True) L1(drift=0.0528,stable=True)
+[organize 13] step=416, samples=13312, loss=1.027378, weight_shifts=[L0=0.231031, L1=0.318360], review_p=[L0=0.800, L1=0.800], cache_sizes=[L0=10240, L1=4096] | L0(drift=0.0025,stable=True) L1(drift=0.0371,stable=True)
+[organize 14] step=448, samples=14336, loss=0.885969, weight_shifts=[L0=0.197253, L1=0.255548], review_p=[L0=0.800, L1=0.800], cache_sizes=[L0=11264, L1=5120] | L0(drift=0.0019,stable=True) L1(drift=0.0261,stable=True)
+[organize 15] step=480, samples=15360, loss=0.704763, weight_shifts=[L0=0.170662, L1=0.212924], acc=91.67%, review_p=[L0=0.800, L1=0.800], cache_sizes=[L0=12288, L1=6144] | L0(drift=0.0014,stable=True) L1(drift=0.0184,stable=True)
+[organize 16] step=512, samples=16384, loss=0.691728, weight_shifts=[L0=0.145210, L1=0.195779], review_p=[L0=0.800, L1=0.800], cache_sizes=[L0=13312, L1=7168] | L0(drift=0.0010,stable=True) L1(drift=0.0129,stable=True)
+[organize 17] step=544, samples=17408, loss=0.632730, weight_shifts=[L0=0.123915, L1=0.164671], review_p=[L0=0.800, L1=0.800], cache_sizes=[L0=14336, L1=8192] | L0(drift=0.0007,stable=True) L1(drift=0.0091,stable=True)
+[organize 18] step=576, samples=18432, loss=0.707468, weight_shifts=[L0=0.107754, L1=0.143586], review_p=[L0=0.800, L1=0.800], cache_sizes=[L0=15360, L1=9216] | L0(drift=0.0005,stable=True) L1(drift=0.0064,stable=True)
+[organize 19] step=608, samples=19456, loss=0.618728, weight_shifts=[L0=0.095275, L1=0.124733], review_p=[L0=0.800, L1=0.800], cache_sizes=[L0=16384, L1=10240] | L0(drift=0.0004,stable=True) L1(drift=0.0045,stable=True)
+[organize 20] step=640, samples=20480, loss=0.479736, weight_shifts=[L0=0.083775, L1=0.110560], acc=92.35%, review_p=[L0=0.800, L1=0.800], cache_sizes=[L0=17408, L1=11264] | L0(drift=0.0003,stable=True) L1(drift=0.0032,stable=True)
+[organize 21] step=672, samples=21504, loss=0.427095, weight_shifts=[L0=0.074366, L1=0.098852], review_p=[L0=0.800, L1=0.800], cache_sizes=[L0=18432, L1=12288] | L0(drift=0.0002,stable=True) L1(drift=0.0022,stable=True)
+[organize 22] step=704, samples=22528, loss=0.393663, weight_shifts=[L0=0.065989, L1=0.087713], review_p=[L0=0.800, L1=0.800], cache_sizes=[L0=19456, L1=13312] | L0(drift=0.0002,stable=True) L1(drift=0.0016,stable=True)
+[organize 23] step=736, samples=23552, loss=0.455750, weight_shifts=[L0=0.058363, L1=0.077991], review_p=[L0=0.800, L1=0.800], cache_sizes=[L0=20000, L1=14336] | L0(drift=0.0001,stable=True) L1(drift=0.0011,stable=True)
+[organize 24] step=768, samples=24576, loss=0.553870, weight_shifts=[L0=0.051668, L1=0.069870], review_p=[L0=0.800, L1=0.800], cache_sizes=[L0=20000, L1=15360] | L0(drift=0.0001,stable=True) L1(drift=0.0008,stable=True)
+[organize 25] step=800, samples=25600, loss=0.410110, weight_shifts=[L0=0.046625, L1=0.063965], acc=92.81%, review_p=[L0=0.800, L1=0.800], cache_sizes=[L0=20000, L1=16384] | L0(drift=0.0001,stable=True) L1(drift=0.0006,stable=True)
+[organize 26] step=832, samples=26624, loss=0.534984, weight_shifts=[L0=0.042094, L1=0.058642], review_p=[L0=0.800, L1=0.800], cache_sizes=[L0=20000, L1=17408] | L0(drift=0.0000,stable=True) L1(drift=0.0004,stable=True)
+[organize 27] step=864, samples=27648, loss=0.340176, weight_shifts=[L0=0.037038, L1=0.052853], review_p=[L0=0.800, L1=0.800], cache_sizes=[L0=20000, L1=18432] | L0(drift=0.0000,stable=True) L1(drift=0.0003,stable=True)
+[organize 28] step=896, samples=28672, loss=0.412588, weight_shifts=[L0=0.033486, L1=0.047885], review_p=[L0=0.800, L1=0.800], cache_sizes=[L0=20000, L1=19456] | L0(drift=0.0000,stable=True) L1(drift=0.0002,stable=True)
+[organize 29] step=928, samples=29696, loss=0.271259, weight_shifts=[L0=0.030455, L1=0.043589], review_p=[L0=0.800, L1=0.800], cache_sizes=[L0=20000, L1=20000] | L0(drift=0.0000,stable=True) L1(drift=0.0001,stable=True)
+[organize 30] step=960, samples=30720, loss=0.441255, weight_shifts=[L0=0.027625, L1=0.039581], acc=92.97%, review_p=[L0=0.800, L1=0.800], cache_sizes=[L0=20000, L1=20000] | L0(drift=0.0000,stable=True) L1(drift=0.0001,stable=True)
+[organize 31] step=992, samples=31744, loss=0.419221, weight_shifts=[L0=0.025625, L1=0.036436], review_p=[L0=0.800, L1=0.800], cache_sizes=[L0=20000, L1=20000] | L0(drift=0.0000,stable=True) L1(drift=0.0001,stable=True)
+[organize 32] step=1024, samples=32768, loss=0.287617, weight_shifts=[L0=0.022982, L1=0.036839], review_p=[L0=0.800, L1=0.800], cache_sizes=[L0=20000, L1=20000] | L0(drift=0.0000,stable=True) L1(drift=0.0001,stable=True)
+[organize 33] step=1056, samples=33792, loss=0.393220, weight_shifts=[L0=0.020549, L1=0.030241], review_p=[L0=0.800, L1=0.800], cache_sizes=[L0=20000, L1=20000] | L0(drift=0.0000,stable=True) L1(drift=0.0000,stable=True)
+[organize 34] step=1088, samples=34816, loss=0.308843, weight_shifts=[L0=0.018504, L1=0.028252], review_p=[L0=0.800, L1=0.800], cache_sizes=[L0=20000, L1=20000] | L0(drift=0.0000,stable=True) L1(drift=0.0000,stable=True)
+[organize 35] step=1120, samples=35840, loss=0.212594, weight_shifts=[L0=0.017035, L1=0.024928], acc=93.28%, review_p=[L0=0.800, L1=0.800], cache_sizes=[L0=20000, L1=20000] | L0(drift=0.0000,stable=True) L1(drift=0.0000,stable=True)
+[organize 36] step=1152, samples=36864, loss=0.329755, weight_shifts=[L0=0.015844, L1=0.023889], review_p=[L0=0.800, L1=0.800], cache_sizes=[L0=20000, L1=20000] | L0(drift=0.0000,stable=True) L1(drift=0.0000,stable=True)
+[organize 37] step=1184, samples=37888, loss=0.359968, weight_shifts=[L0=0.014617, L1=0.022410], review_p=[L0=0.800, L1=0.800], cache_sizes=[L0=20000, L1=20000] | L0(drift=0.0000,stable=True) L1(drift=0.0000,stable=True)
+[organize 38] step=1216, samples=38912, loss=0.228180, weight_shifts=[L0=0.013718, L1=0.020705], review_p=[L0=0.800, L1=0.800], cache_sizes=[L0=20000, L1=20000] | L0(drift=0.0000,stable=True) L1(drift=0.0000,stable=True)
+[organize 39] step=1248, samples=39936, loss=0.415390, weight_shifts=[L0=0.012711, L1=0.019253], review_p=[L0=0.800, L1=0.800], cache_sizes=[L0=20000, L1=20000] | L0(drift=0.0000,stable=True) L1(drift=0.0000,stable=True)
+[organize 40] step=1280, samples=40960, loss=0.443343, weight_shifts=[L0=0.011572, L1=0.018060], acc=93.54%, review_p=[L0=0.800, L1=0.800], cache_sizes=[L0=20000, L1=20000] | L0(drift=0.0000,stable=True) L1(drift=0.0000,stable=True)
+[organize 41] step=1312, samples=41984, loss=0.283239, weight_shifts=[L0=0.010658, L1=0.017036], review_p=[L0=0.800, L1=0.800], cache_sizes=[L0=20000, L1=20000] | L0(drift=0.0000,stable=True) L1(drift=0.0000,stable=True)
+[organize 42] step=1344, samples=43008, loss=0.204055, weight_shifts=[L0=0.010179, L1=0.016787], review_p=[L0=0.800, L1=0.800], cache_sizes=[L0=20000, L1=20000] | L0(drift=0.0000,stable=True) L1(drift=0.0000,stable=True)
+[organize 43] step=1376, samples=44032, loss=0.507003, weight_shifts=[L0=0.009473, L1=0.015358], review_p=[L0=0.800, L1=0.800], cache_sizes=[L0=20000, L1=20000] | L0(drift=0.0000,stable=True) L1(drift=0.0000,stable=True)
+[organize 44] step=1408, samples=45056, loss=0.140928, weight_shifts=[L0=0.008822, L1=0.016003], review_p=[L0=0.800, L1=0.800], cache_sizes=[L0=20000, L1=20000] | L0(drift=0.0000,stable=True) L1(drift=0.0000,stable=True)
+[organize 45] step=1440, samples=46080, loss=0.137705, weight_shifts=[L0=0.008081, L1=0.013234], acc=93.67%, review_p=[L0=0.800, L1=0.800], cache_sizes=[L0=20000, L1=20000] | L0(drift=0.0000,stable=True) L1(drift=0.0000,stable=True)
+[organize 46] step=1472, samples=47104, loss=0.348649, weight_shifts=[L0=0.007762, L1=0.012581], review_p=[L0=0.800, L1=0.800], cache_sizes=[L0=20000, L1=20000] | L0(drift=0.0000,stable=True) L1(drift=0.0000,stable=True)
+[organize 47] step=1504, samples=48128, loss=0.090065, weight_shifts=[L0=0.007137, L1=0.013315], review_p=[L0=0.800, L1=0.800], cache_sizes=[L0=20000, L1=20000] | L0(drift=0.0000,stable=True) L1(drift=0.0000,stable=True)
+[organize 48] step=1536, samples=49152, loss=0.296118, weight_shifts=[L0=0.006614, L1=0.012596], review_p=[L0=0.800, L1=0.800], cache_sizes=[L0=20000, L1=20000] | L0(drift=0.0000,stable=True) L1(drift=0.0000,stable=True)
+[organize 49] step=1568, samples=50176, loss=0.219869, weight_shifts=[L0=0.006205, L1=0.010893], review_p=[L0=0.800, L1=0.800], cache_sizes=[L0=20000, L1=20000] | L0(drift=0.0000,stable=True) L1(drift=0.0000,stable=True)
+[organize 50] step=1600, samples=51200, loss=0.164084, weight_shifts=[L0=0.005832, L1=0.012297], acc=93.83%, review_p=[L0=0.800, L1=0.800], cache_sizes=[L0=20000, L1=20000] | L0(drift=0.0000,stable=True) L1(drift=0.0000,stable=True)
+[organize 51] step=1632, samples=52224, loss=0.395330, weight_shifts=[L0=0.005345, L1=0.011397], review_p=[L0=0.800, L1=0.800], cache_sizes=[L0=20000, L1=20000] | L0(drift=0.0000,stable=True) L1(drift=0.0000,stable=True)
+[organize 52] step=1664, samples=53248, loss=0.103903, weight_shifts=[L0=0.005082, L1=0.009020], review_p=[L0=0.800, L1=0.800], cache_sizes=[L0=20000, L1=20000] | L0(drift=0.0000,stable=True) L1(drift=0.0000,stable=True)
+[organize 53] step=1696, samples=54272, loss=0.288273, weight_shifts=[L0=0.004860, L1=0.009333], review_p=[L0=0.800, L1=0.800], cache_sizes=[L0=20000, L1=20000] | L0(drift=0.0000,stable=True) L1(drift=0.0000,stable=True)
+[organize 54] step=1728, samples=55296, loss=0.307227, weight_shifts=[L0=0.004540, L1=0.008750], review_p=[L0=0.800, L1=0.800], cache_sizes=[L0=20000, L1=20000] | L0(drift=0.0000,stable=True) L1(drift=0.0000,stable=True)
+[organize 55] step=1760, samples=56320, loss=0.388968, weight_shifts=[L0=0.004399, L1=0.008362], acc=93.93%, review_p=[L0=0.800, L1=0.800], cache_sizes=[L0=20000, L1=20000] | L0(drift=0.0000,stable=True) L1(drift=0.0000,stable=True)
+[organize 56] step=1792, samples=57344, loss=0.107061, weight_shifts=[L0=0.004084, L1=0.007526], review_p=[L0=0.800, L1=0.800], cache_sizes=[L0=20000, L1=20000] | L0(drift=0.0000,stable=True) L1(drift=0.0000,stable=True)
+[organize 57] step=1824, samples=58368, loss=0.119458, weight_shifts=[L0=0.003939, L1=0.007113], review_p=[L0=0.800, L1=0.800], cache_sizes=[L0=20000, L1=20000] | L0(drift=0.0000,stable=True) L1(drift=0.0000,stable=True)
+[organize 58] step=1856, samples=59392, loss=0.375180, weight_shifts=[L0=0.003767, L1=0.006779], review_p=[L0=0.800, L1=0.800], cache_sizes=[L0=20000, L1=20000] | L0(drift=0.0000,stable=True) L1(drift=0.0000,stable=True)
+[final organize] step=1875, samples=60000, loss=0.226807, weight_shifts=[L0=0.003542, L1=0.008266], acc=93.93%, review_p=[L0=0.800, L1=0.800], cache_sizes=[L0=20000, L1=20000] | L0(drift=0.0000,stable=True) L1(drift=0.0000,stable=True)
+[final eval] acc=93.93%
+[checkpoint] saved reusable stack checkpoint 'stacked_2layer_h2000_readout' -> /mnt/vstor/courses/wids/axp1343/DCNet_Updated/Deep-DCNet/checkpoints/stacked_2layer_h2000_readout.pt

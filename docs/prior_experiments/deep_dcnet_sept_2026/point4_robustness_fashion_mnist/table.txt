@@ -1,0 +1,16 @@
+dataset: fashion_mnist   test images: 10000   seed: 0
+
+perturbation   level            point6_fashion_mnist_single_layer_readout  point6_fashion_mnist_single_layer_traditional_mlp               point6_fashion_mnist_stacked_readout
+clean            0.0                                                82.01                                              84.52                                              81.95
+gaussian         0.1                                                81.72                                              84.17                                              81.39
+gaussian         0.2                                                81.31                                              83.37                                              81.00
+gaussian         0.3                                                80.10                                              81.07                                              79.64
+gaussian         0.5                                                73.46                                              70.98                                              73.84
+salt_pepper     0.05                                                81.94                                              84.20                                              81.48
+salt_pepper      0.1                                                81.62                                              83.39                                              81.16
+salt_pepper      0.2                                                80.58                                              81.63                                              80.38
+occlusion          6                                                79.45                                              81.30                                              79.34
+occlusion         10                                                70.31                                              70.50                                              69.30
+occlusion         14                                                56.77                                              55.33                                              53.65
+shift              2                                                64.61                                              64.08                                              63.67
+shift              4                                                44.21                                              42.39                                              42.68

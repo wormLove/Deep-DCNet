@@ -12,12 +12,12 @@ Newest first. One entry per batch of runs or work session.
 
 ---
 
-### 2026-11-15 — Freeze-then-train protocol added
-- **What:** Plan 03, code only. New protocol `freeze` (`training/freeze_protocol.py`): 5,000-image validation split, Hebbian layer(s) learned without labels (stacked: layer by layer), frozen, features cached, head trained up to 30 epochs with early stopping on val accuracy. `--training-mode freeze` in both training entry points; new scripts `experiments/2026-11-15_freeze_baselines.py`, `experiments/head_on_frozen.py` (new head on a finished run's frozen layers) and `tools/compare_layers.py`. `plain` and `review` unchanged.
-- **Runs:** none yet · commit: _(fill in)_
-- **Result:** —
-- **Takeaway:** —
-- **Next:** Plan 03 checks on Pioneer: equivalence with `plain` at `--val-size 0`, smoke runs, first full MNIST numbers (reference, one pass: single + readout 94.01, single + MLP 96.17, stacked 93.93).
+### 2026-11-15 — Freeze-then-train protocol: first MNIST numbers
+- **What:** Plan 03. New protocol `freeze` (`training/freeze_protocol.py`): 5,000-image validation split, Hebbian layer(s) learned without labels (stacked: layer by layer), frozen, features cached, head trained up to 30 epochs with early stopping on val accuracy. `--training-mode freeze` in both training entry points; new scripts `experiments/2026-11-15_freeze_baselines.py`, `experiments/head_on_frozen.py` (new head on a finished run's frozen layers) and `tools/compare_layers.py`. `plain` and `review` unchanged.
+- **Runs:** `freeze_mnist_single_layer_readout_s33`, `freeze_mnist_stacked_readout_s33`, `freeze_mnist_single_layer_readout_head-traditional_mlp_s33` (head only, on the first run's frozen layer) + smoke checks · Pioneer · NVIDIA L40S · eb45afc
+- **Result:** equivalence check passed: with `--val-size 0` the frozen layer equals the plain run's exactly (every tensor Δ = 0). Full MNIST, test accuracy of the best-val head: single + readout **96.59 %** (plain 94.01), single + MLP head **96.90 %** on the same frozen features (plain 96.17), stacked + readout **95.30 %** (one-pass 93.93). Readout head ran all 30 epochs (best 28), stacked all 30 (best 30), MLP head early-stopped at 17 (best 12). Wall time 1 min 29 s single, 3 min 37 s stacked, 28 s head-only.
+- **Takeaway:** freezing adds ~2.6 points to the linear readout; the readout vs MLP gap shrinks from 2.16 to 0.31 points, so most of the September head gap was head training, not feature quality. Stacking is still below single (−1.3), but its head was still improving at epoch 30. One seed only.
+- **Next:** check whether 30 head epochs cap the readout/stacked numbers; then 3 seeds and the other datasets under `freeze`.
 
 ### 2026-11-15 — Pioneer on L40S with pip PyTorch
 - **What:** Plan 02c. pip-installed torch 2.1.2 + cu121 in its own venv (same torch version as the module, all current GPU types); GPU type pinned to L40S; failed runs now marked `failed` in `final_eval.json` and the results index.

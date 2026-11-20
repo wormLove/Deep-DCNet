@@ -1,0 +1,16 @@
+dataset: mnist   test images: 10000   seed: 0
+
+perturbation   level      single_layer_baseline  point5_traditional_head  stacked_2layer_baseline
+clean            0.0                      94.01                    96.17                    93.93
+gaussian         0.1                      94.04                    96.16                    93.90
+gaussian         0.2                      93.67                    95.92                    93.58
+gaussian         0.3                      93.17                    95.31                    92.96
+gaussian         0.5                      90.94                    91.27                    87.33
+salt_pepper     0.05                      93.92                    96.06                    93.88
+salt_pepper      0.1                      93.52                    95.52                    93.48
+salt_pepper      0.2                      93.00                    94.94                    92.74
+occlusion          6                      92.17                    93.69                    91.98
+occlusion         10                      85.55                    84.70                    85.51
+occlusion         14                      74.77                    66.26                    73.23
+shift              2                      66.44                    71.17                    65.09
+shift              4                      34.90                    38.17                    35.06

@@ -4,6 +4,7 @@ Aishani Patil · branch_Aishani of Deep-DCNet · advisor Prof. Ron Yu (CWRU)
 
 | File | Read it for | Updated |
 |---|---|---|
+| [HANDOVER.md](HANDOVER.md) | New to this branch? How to navigate, run and track everything | At handover |
 | [results.md](results.md) | The latest numbers (mean ± std over seeds) | After each batch of runs (auto-generated block) |
 | [experiment_log.md](experiment_log.md) | What was done when, and what it showed | After every batch of runs or work session |
 | [models_and_setups.md](models_and_setups.md) | Math setups, training protocols, architectures, default configs, datasets | When something new is added |

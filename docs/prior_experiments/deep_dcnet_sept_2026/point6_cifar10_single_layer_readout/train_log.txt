@@ -1,0 +1,69 @@
+[run_name] point6_cifar10_single_layer_readout
+[device] cuda
+[dataset] cifar10 (input_dim=3072, num_classes=10)
+[hidden_dim] 2000
+[train_subset] 50000
+[test_subset] 10000
+[batch_size] 32
+[organize_interval_samples] 1000
+[eval_interval_samples] 5000
+[training_mode] plain
+[init_mode] random
+[head] readout
+[integration_layer] disabled
+[result_dir] /mnt/vstor/courses/wids/axp1343/DCNet_Updated/Deep-DCNet/RESULT/point6_cifar10_single_layer_readout/2026-09-18_22-27-31
+[eval_log] /mnt/vstor/courses/wids/axp1343/DCNet_Updated/Deep-DCNet/RESULT/point6_cifar10_single_layer_readout/2026-09-18_22-27-31/eval_log.txt
+[train_log] /mnt/vstor/courses/wids/axp1343/DCNet_Updated/Deep-DCNet/RESULT/point6_cifar10_single_layer_readout/2026-09-18_22-27-31/train_log.txt
+[checkpoint_name] point6_cifar10_single_layer_readout
+[eval step 0] acc=8.26%
+[organize 1] step=32, samples=1024, loss=2.279009, weight_shift=15.384137
+[organize 2] step=64, samples=2048, loss=1.985331, weight_shift=4.248315
+[organize 3] step=96, samples=3072, loss=2.042749, weight_shift=1.437357
+[organize 4] step=128, samples=4096, loss=1.934399, weight_shift=0.928012
+[organize 5] step=160, samples=5120, loss=1.764298, weight_shift=0.649666, acc=32.48%
+[organize 6] step=192, samples=6144, loss=1.963905, weight_shift=0.488352
+[organize 7] step=224, samples=7168, loss=2.050644, weight_shift=0.400597
+[organize 8] step=256, samples=8192, loss=1.963717, weight_shift=0.321971
+[organize 9] step=288, samples=9216, loss=1.563307, weight_shift=0.273654
+[organize 10] step=320, samples=10240, loss=1.742882, weight_shift=0.227152, acc=35.04%
+[organize 11] step=352, samples=11264, loss=1.963128, weight_shift=0.196724
+[organize 12] step=384, samples=12288, loss=1.856561, weight_shift=0.180833
+[organize 13] step=416, samples=13312, loss=1.679469, weight_shift=0.155812
+[organize 14] step=448, samples=14336, loss=1.695246, weight_shift=0.131815
+[organize 15] step=480, samples=15360, loss=1.666610, weight_shift=0.124429, acc=35.85%
+[organize 16] step=512, samples=16384, loss=1.865262, weight_shift=0.109225
+[organize 17] step=544, samples=17408, loss=1.693172, weight_shift=0.097337
+[organize 18] step=576, samples=18432, loss=2.076475, weight_shift=0.093346
+[organize 19] step=608, samples=19456, loss=1.650316, weight_shift=0.083998
+[organize 20] step=640, samples=20480, loss=1.754158, weight_shift=0.075314, acc=36.43%
+[organize 21] step=672, samples=21504, loss=1.872576, weight_shift=0.064363
+[organize 22] step=704, samples=22528, loss=1.650509, weight_shift=0.058887
+[organize 23] step=736, samples=23552, loss=1.845109, weight_shift=0.054742
+[organize 24] step=768, samples=24576, loss=1.663056, weight_shift=0.051358
+[organize 25] step=800, samples=25600, loss=1.833260, weight_shift=0.044757, acc=37.19%
+[organize 26] step=832, samples=26624, loss=1.872377, weight_shift=0.042701
+[organize 27] step=864, samples=27648, loss=1.833555, weight_shift=0.037865
+[organize 28] step=896, samples=28672, loss=1.974002, weight_shift=0.034710
+[organize 29] step=928, samples=29696, loss=1.809081, weight_shift=0.034234
+[organize 30] step=960, samples=30720, loss=1.817422, weight_shift=0.034420, acc=37.64%
+[organize 31] step=992, samples=31744, loss=1.928423, weight_shift=0.044014
+[organize 32] step=1024, samples=32768, loss=1.992337, weight_shift=0.030018
+[organize 33] step=1056, samples=33792, loss=1.848708, weight_shift=0.038387
+[organize 34] step=1088, samples=34816, loss=1.670889, weight_shift=0.031796
+[organize 35] step=1120, samples=35840, loss=1.584395, weight_shift=0.026887, acc=37.82%
+[organize 36] step=1152, samples=36864, loss=1.920344, weight_shift=0.023907
+[organize 37] step=1184, samples=37888, loss=1.824749, weight_shift=0.019807
+[organize 38] step=1216, samples=38912, loss=1.836055, weight_shift=0.019243
+[organize 39] step=1248, samples=39936, loss=1.781407, weight_shift=0.018867
+[organize 40] step=1280, samples=40960, loss=1.766151, weight_shift=0.018173, acc=38.12%
+[organize 41] step=1312, samples=41984, loss=2.019650, weight_shift=0.017141
+[organize 42] step=1344, samples=43008, loss=1.794643, weight_shift=0.016851
+[organize 43] step=1376, samples=44032, loss=1.733963, weight_shift=0.015573
+[organize 44] step=1408, samples=45056, loss=1.929784, weight_shift=0.015048
+[organize 45] step=1440, samples=46080, loss=1.737333, weight_shift=0.013533, acc=38.48%
+[organize 46] step=1472, samples=47104, loss=1.557995, weight_shift=0.012896
+[organize 47] step=1504, samples=48128, loss=1.594956, weight_shift=0.011982
+[organize 48] step=1536, samples=49152, loss=1.703967, weight_shift=0.011491
+[final organize] step=1563, samples=50000, loss=1.323502, weight_shift=0.011143, acc=38.00%
+[final eval] acc=38.00%
+[checkpoint] saved reusable discrimination-layer checkpoint 'point6_cifar10_single_layer_readout' -> /mnt/vstor/courses/wids/axp1343/DCNet_Updated/Deep-DCNet/checkpoints/point6_cifar10_single_layer_readout.pt
