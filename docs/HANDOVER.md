@@ -167,8 +167,8 @@ Freezing closes most of the readout–MLP gap (2.16 → 0.31 points), so the Sep
 | # | Point | Status |
 |---|---|---|
 | 1 | Parallel discrimination layers → dense layer | Not started |
-| 2 | Class-specific classification module (Raj & Yu) | Not started; confirm interpretation with Prof. Yu |
-| 3 | Combine sparse + dense, then expand again | Not started; overlaps the "input + sparse → dense → sparse" layer agreed at the October meeting |
+| 2 | Class-specific classification module (Raj & Yu) | Not started |
+| 3 | Combine sparse + dense, then expand again | Base set-up dont, exp run remaining; overlaps the "input + sparse → dense → sparse" layer agreed at the October meeting |
 | 4 | Noise / masking robustness | Final-accuracy sweeps done (September, one-pass); per-layer representation analysis not done |
 | 5 | Traditional classification head | Done |
 | 6 | More datasets | Done (registry: MNIST, Fashion-MNIST, KMNIST, CIFAR-10, CIFAR-10 gray) |
@@ -201,13 +201,7 @@ Freezing closes most of the readout–MLP gap (2.16 → 0.31 points), so the Sep
 - New experiment → a dated script in `experiments/` (`YYYY-MM-DD_<name>.py`) with a fixed run name.
 - After every batch of runs: update `results.md` (index tool) and add an `experiment_log.md` entry.
 
-## 12. People
-
-- **Prof. Ron Yu** (CWRU): advisor; sets the research agenda.
-- **Lin (Junlin)**: author of Deep-DCNet and owner of `main` and the Pioneer folder; ask him about the math and Pioneer access.
-- **Aishani Patil**: author of `branch_Aishani`.
-
-## 13. Summary of work done (Aishani, September–November 2026)
+## 12. Summary of work done (Aishani, September–November 2026)
 
 | When | What | Where |
 |---|---|---|
